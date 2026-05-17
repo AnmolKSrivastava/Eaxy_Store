@@ -1,0 +1,500 @@
+/* ================================================================
+   Theme 3 — Brutalist Tech Grid
+   Same green/gold palette, completely different visual language:
+   • Sharp corners everywhere (near-zero radius)
+   • Structural flat cards with left-accent border (no glass gradient)
+   • Outlined / filled-on-hover buttons
+   • Subtle CSS grid background on body
+   • Left-aligned section heads with underline bar
+   • Circular icon boxes
+   • Hero: full-width centered typographic treatment
+   • Media cards: desaturated → colour-on-hover
+   • Outlined CTA banner with diagonal stripe
+   ================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  /* Colors — same as default */
+  --bg: #0f1115;
+  --panel: #1a1f2b;
+  --text: #f5f7fa;
+  --muted: rgba(245, 247, 250, 0.6);
+  --green: #0f6b53;
+  --gold: #d4af37;
+  --border: rgba(255, 255, 255, 0.1);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+
+  /* Spacing — same */
+  --section-padding: 5.5rem 0;
+  --section-padding-mobile: 4rem 0;
+  --gap-sm: 0.4rem;
+  --gap-md: 0.65rem;
+  --gap-lg: 1rem;
+  --gap-xl: 2.2rem;
+
+  /* Radii — near flat / brutalist */
+  --radius-sm: 0;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+
+  /* Shadows — replaced with coloured glow lines */
+  --shadow-sm: 0 0 0 1px rgba(15, 107, 83, 0.6);
+  --shadow-md: 4px 8px 0 rgba(15, 107, 83, 0.25);
+}
+
+/* ─── Body — subtle grid pattern ─────────────────────────────── */
+body {
+  background-color: var(--bg) !important;
+  background-image:
+    linear-gradient(rgba(15, 107, 83, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 107, 83, 0.05) 1px, transparent 1px) !important;
+  background-size: 44px 44px !important;
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4,
+strong,
+.brand-text {
+  font-family: var(--font-display);
+}
+
+/* ─── Gradient text — unchanged ───────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(92deg, var(--green), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ─── Section tint ────────────────────────────────────────────── */
+.section-tint {
+  background: linear-gradient(180deg, transparent, rgba(15, 107, 83, 0.06), transparent) !important;
+}
+
+/* ─── Navbar — opaque, green left rule ───────────────────────── */
+.nav-shell {
+  background: #0d1017 !important;
+  border-bottom: 2px solid var(--green) !important;
+  backdrop-filter: none !important;
+}
+
+.nav-links {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.82rem !important;
+  font-weight: 600;
+  color: var(--muted) !important;
+}
+
+.nav-links a:hover {
+  color: var(--gold) !important;
+}
+
+/* ─── Buttons — sharp, outlined-first style ───────────────────── */
+.btn {
+  border-radius: 2px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.82rem !important;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.btn:hover {
+  transform: none !important;
+}
+
+/* Primary — solid fill with offset shadow */
+.btn-primary {
+  background: var(--green) !important;
+  color: #fff !important;
+  border: 2px solid var(--green) !important;
+  box-shadow: 4px 4px 0 rgba(15, 107, 83, 0.45) !important;
+}
+
+.btn-primary:hover {
+  background: transparent !important;
+  color: var(--green) !important;
+  box-shadow: 4px 4px 0 rgba(15, 107, 83, 0.25) !important;
+}
+
+/* Ghost — outlined with gold accent on hover */
+.btn-ghost {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 2px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+.btn-ghost:hover {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+
+.btn-link {
+  color: var(--green) !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--green) !important;
+  padding-bottom: 2px !important;
+}
+
+.btn-light {
+  color: var(--bg) !important;
+  background: var(--text) !important;
+  border: 2px solid var(--text) !important;
+}
+
+.btn-light:hover {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+
+.btn-soft {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 2px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+.btn-soft:hover {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+
+/* ─── Hero — center-aligned typographic style ────────────────── */
+.hero {
+  padding-top: 5rem !important;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  gap: 3rem !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
+}
+
+.hero-grid > * {
+  width: 100%;
+}
+
+.lede {
+  max-width: 60ch !important;
+  margin: 0 auto !important;
+}
+
+.cta-row {
+  justify-content: center !important;
+}
+
+.metrics {
+  justify-content: center !important;
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+
+.metrics div {
+  border-left: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+.metrics strong {
+  color: var(--green) !important;
+  font-size: 1.6rem !important;
+}
+
+/* Hero media: full-width banner below text */
+.hero-media {
+  width: min(900px, 100%) !important;
+}
+
+.hero-media img {
+  border-radius: 0 !important;
+  border: 1px solid rgba(15, 107, 83, 0.4) !important;
+  box-shadow: 8px 8px 0 rgba(15, 107, 83, 0.22) !important;
+}
+
+.hero-chip {
+  border-radius: 2px !important;
+  background: #0d1017 !important;
+  border: 1px solid var(--green) !important;
+  box-shadow: 4px 4px 0 rgba(15, 107, 83, 0.3) !important;
+}
+
+/* Ambient blobs — off (too floaty for this style) */
+.hero-ambient {
+  display: none !important;
+}
+
+/* ─── Pill badges — sharp rectangular ───────────────────────── */
+.pill {
+  border-radius: 2px !important;
+  border: 1px solid rgba(15, 107, 83, 0.5) !important;
+  background: transparent !important;
+  color: var(--green) !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.76rem !important;
+  font-weight: 600 !important;
+}
+
+.pill.light {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ─── Section heads — left-aligned with underline bar ────────── */
+.section-head {
+  text-align: left !important;
+  margin-bottom: 2rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 2px solid rgba(15, 107, 83, 0.3) !important;
+  position: relative;
+}
+
+.section-head::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 3.5rem;
+  height: 2px;
+  background: var(--green);
+}
+
+.section-head.row {
+  border-bottom: 2px solid rgba(15, 107, 83, 0.3) !important;
+  text-align: left !important;
+}
+
+/* ─── Glass cards — flat + left accent border ────────────────── */
+.glass-card {
+  background: var(--panel) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-left: 3px solid var(--green) !important;
+  border-radius: 0 !important;
+  padding: 1.4rem !important;
+  box-shadow: none !important;
+}
+
+.glass-card.center {
+  text-align: left !important;
+  border-left: 3px solid var(--gold) !important;
+}
+
+.step-watermark {
+  color: var(--green);
+  opacity: 0.12 !important;
+  font-size: 4rem !important;
+  top: 0.5rem !important;
+  right: 0.7rem !important;
+}
+
+/* ─── Icon boxes — circular ───────────────────────────────────── */
+.icon-box {
+  border-radius: 50% !important;
+  background: transparent !important;
+  border: 2px solid var(--green) !important;
+  color: var(--green) !important;
+  width: 3rem !important;
+  height: 3rem !important;
+}
+
+.icon-box.gold {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+  background: transparent !important;
+}
+
+.icon-box.small {
+  border-radius: 50% !important;
+  width: 2.1rem !important;
+  height: 2.1rem !important;
+}
+
+/* ─── Media cards — desaturate, colour on hover ─────────────── */
+.media-card {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-left: 3px solid var(--gold) !important;
+}
+
+.media-card img {
+  filter: grayscale(55%) !important;
+  transition: filter 0.45s ease, transform 0.45s ease !important;
+}
+
+.media-card:hover img {
+  filter: grayscale(0%) !important;
+  transform: scale(1.04) !important;
+}
+
+.media-overlay {
+  background: linear-gradient(180deg, transparent 20%, rgba(10, 12, 18, 0.92) 90%) !important;
+}
+
+.count-tag {
+  border-radius: 2px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+}
+
+.deal-badge {
+  border-radius: 2px !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* ─── Coverage stat — outlined diamond/square ────────────────── */
+.coverage-stat {
+  border-radius: 0 !important;
+  border: 2px solid var(--green) !important;
+  background: transparent !important;
+  box-shadow: 8px 8px 0 rgba(15, 107, 83, 0.2) !important;
+}
+
+.coverage-stat strong {
+  font-size: 3.5rem !important;
+  color: var(--gold) !important;
+}
+
+.coverage-stat span {
+  color: var(--muted) !important;
+}
+
+/* ─── Hint card ──────────────────────────────────────────────── */
+.hint-card {
+  border-radius: 0 !important;
+  border: 1px solid rgba(15, 107, 83, 0.45) !important;
+  border-left: 3px solid var(--green) !important;
+  background: rgba(15, 107, 83, 0.06) !important;
+}
+
+/* ─── Price and deal styling ──────────────────────────────────── */
+.price-row strong {
+  color: var(--gold) !important;
+  font-size: 1.1rem !important;
+}
+
+.price-row span {
+  color: rgba(245, 247, 250, 0.35) !important;
+}
+
+.price {
+  color: var(--gold) !important;
+}
+
+/* ─── Testimonial cards ──────────────────────────────────────── */
+.glass-card .quote::before {
+  content: '"';
+  display: block;
+  font-size: 3.5rem;
+  line-height: 1;
+  color: var(--green);
+  opacity: 0.5;
+  margin-bottom: -0.8rem;
+  font-family: Georgia, serif;
+}
+
+.stars {
+  color: var(--gold) !important;
+}
+
+.author {
+  color: var(--text) !important;
+  font-weight: 700 !important;
+}
+
+/* ─── CTA Banner — outlined, diagonal stripe accent ──────────── */
+.cta-banner {
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 2px solid var(--green) !important;
+  box-shadow: 8px 8px 0 rgba(15, 107, 83, 0.28) !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+.cta-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(15, 107, 83, 0.04),
+    rgba(15, 107, 83, 0.04) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+  pointer-events: none;
+}
+
+.cta-banner::after {
+  content: '';
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.1) !important;
+  filter: blur(60px);
+  right: -60px;
+  top: -60px;
+}
+
+.cta-banner h2 {
+  color: var(--text) !important;
+}
+
+.cta-banner p {
+  color: var(--muted) !important;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+.footer {
+  border-top: 2px solid var(--green) !important;
+}
+
+.footer-end {
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 4px 4px 0 rgba(15, 107, 83, 0.28); }
+  50%       { box-shadow: 6px 6px 0 rgba(15, 107, 83, 0.55); }
+}
+
+/* ─── Responsive — mirror App.css breakpoints ────────────────── */
+@media (max-width: 1100px) {
+  .hero-grid {
+    flex-direction: column !important;
+  }
+
+  .section-head {
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 740px) {
+  .hero-grid {
+    text-align: center !important;
+  }
+
+  .cta-row {
+    justify-content: center !important;
+  }
+
+  .metrics {
+    justify-content: center !important;
+  }
+
+  .section-head {
+    text-align: left !important;
+  }
+}

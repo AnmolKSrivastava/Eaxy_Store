@@ -1,0 +1,4 @@
+/* Theme entry point - import your active theme here */
+/* To use different themes, change the import below */
+/* Options: ./themes/theme-default.css, ./themes/theme-minimal.css, ./themes/theme_2.css, ./themes/theme_3.css */
+@import './themes/theme-default.css';

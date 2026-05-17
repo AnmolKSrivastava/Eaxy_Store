@@ -1,0 +1,9 @@
+export { default as HeroSection } from './HeroSection';
+export { default as HowItWorksSection } from './HowItWorksSection';
+export { default as ProductCategoriesSection } from './ProductCategoriesSection';
+export { default as RepairServicesSection } from './RepairServicesSection';
+export { default as WhyChooseSection } from './WhyChooseSection';
+export { default as CoverageSection } from './CoverageSection';
+export { default as HotDealsSection } from './HotDealsSection';
+export { default as TestimonialsSection } from './TestimonialsSection';
+export { default as CtaBannerSection } from './CtaBannerSection';
