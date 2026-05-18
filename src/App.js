@@ -6,6 +6,7 @@ import RepairServicesPage from './pages/RepairServicesPage';
 import ContactPage from './pages/ContactPage';
 import WishlistPage from './pages/WishlistPage';
 import CartPage from './pages/CartPage';
+import { Chatbot } from './components/shared';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/cart" element={<CartPage />} />
       </Routes>
+      <Chatbot />
     </Router>
   );
 }
