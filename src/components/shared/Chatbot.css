@@ -22,12 +22,17 @@
   color: #f5f7fa;
   transition: all 0.3s ease;
   animation: pulse 2s infinite;
+  overflow: visible;
 }
 
 .chatbot-toggle-btn:hover {
   transform: scale(1.08) translateY(-2px);
   box-shadow: 0 12px 35px rgba(15, 107, 83, 0.6);
   border-color: rgba(212, 175, 55, 0.5);
+}
+
+.chatbot-toggle-btn:hover .ai-icon {
+  animation: aiGlow 1.5s ease infinite;
 }
 
 .chatbot-toggle-btn.open {
@@ -41,6 +46,28 @@
   }
   50% {
     box-shadow: 0 8px 35px rgba(15, 107, 83, 0.65);
+  }
+}
+
+@keyframes aiGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 12px rgba(212, 175, 55, 0.6));
+  }
+}
+
+.ai-icon {
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -130,11 +157,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: avatarPulse 3s ease infinite;
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+}
+
+@keyframes avatarPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+  }
 }
 
 .chatbot-avatar svg {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
+  animation: avatarRotate 15s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+}
+
+@keyframes avatarRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .chatbot-header h3 {

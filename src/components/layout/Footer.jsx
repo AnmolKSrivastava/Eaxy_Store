@@ -42,7 +42,16 @@ function Footer() {
         </div>
       </div>
       <div className="container footer-end">
-        <p>Copyright 2026 <BrandName />. All rights reserved.</p>
+        <p>
+          Copyright 2026 <BrandName />. All rights reserved
+          <span 
+            className="admin-access-btn" 
+            onClick={() => window.location.href = '/admin'}
+            title="Admin Access"
+          >
+            .
+          </span>
+        </p>
         <div>
           <a href="#top">Privacy Policy</a>
           <a href="#top">Terms of Service</a>

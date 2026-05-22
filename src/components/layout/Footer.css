@@ -47,6 +47,23 @@
   gap: 1rem;
 }
 
+/* Semi-hidden admin access button */
+.admin-access-btn {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0 4px;
+  margin-left: -2px;
+  transition: all 0.3s ease;
+  color: var(--muted);
+  font-weight: bold;
+}
+
+.admin-access-btn:hover {
+  color: var(--primary);
+  text-shadow: 0 0 8px var(--primary);
+  transform: scale(1.5);
+}
+
 @media (max-width: 1100px) {
   .footer-grid {
     grid-template-columns: 1fr;

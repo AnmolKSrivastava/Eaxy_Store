@@ -11,6 +11,13 @@
   --gold: #d4af37;
   --border: rgba(255, 255, 255, 0.12);
 
+  /* Common aliases */
+  --background: var(--bg);
+  --card: var(--panel);
+  --foreground: var(--text);
+  --primary: var(--green);
+  --primary-rgb: 15, 107, 83;
+
   /* Typography */
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
