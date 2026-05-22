@@ -90,7 +90,7 @@ The CI/CD pipeline will automatically trigger on:
 
 The workflow includes these stages:
 1. 🔄 Checkout Repository
-2. 📦 Setup Node.js 18
+2. 📦 Setup Node.js 20
 3. ⬇️ Install Dependencies
 4. 🏗️ Build React App
 5. 🚀 Deploy to Firebase
