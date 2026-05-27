@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import { Edit, Eye, EyeOff, CheckCircle, XCircle, Clock, User, Star, MessageSquare } from 'lucide-react';
+import ContentEditModal from './ContentEditModal';
 import './ContentManagement.css';
 
 function ContentManagement() {
   const [activeTab, setActiveTab] = useState('sections');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSection, setEditingSection] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    subtitle: '',
+    description: '',
+    buttonText: '',
+    buttonLink: '',
+  });
 
   const [homepageSections, setHomepageSections] = useState([
     { id: 1, name: 'Hero Section', status: 'active', lastUpdated: '2026-05-20', type: 'hero' },
@@ -86,6 +96,111 @@ function ContentManagement() {
         item.id === testimonialId ? { ...item, status: action } : item
       )
     );
+  };
+
+  const handleEditSection = (section) => {
+    setEditingSection(section);
+    setEditForm({
+      title: getSectionContent(section.type).title,
+      subtitle: getSectionContent(section.type).subtitle,
+      description: getSectionContent(section.type).description,
+      buttonText: getSectionContent(section.type).buttonText,
+      buttonLink: getSectionContent(section.type).buttonLink,
+    });
+    setShowEditModal(true);
+  };
+
+  const getSectionContent = (type) => {
+    const content = {
+      hero: {
+        title: 'Lightning-Fast Tech Delivery',
+        subtitle: 'Premium Electronics Delivered in 4 Hours',
+        description: 'Experience the fastest tech delivery in Pune. Quality products, guaranteed delivery within 4 hours.',
+        buttonText: 'Browse Products',
+        buttonLink: '/products',
+      },
+      process: {
+        title: 'How It Works',
+        subtitle: 'Simple, Fast, Reliable',
+        description: 'Browse, order, confirm, and receive within 4 hours',
+        buttonText: '',
+        buttonLink: '',
+      },
+      categories: {
+        title: 'Browse by Category',
+        subtitle: 'Find Your Perfect Tech',
+        description: 'Laptops, smartphones, accessories, and refurbished devices',
+        buttonText: 'View All',
+        buttonLink: '/products',
+      },
+      services: {
+        title: 'Expert Repair Services',
+        subtitle: 'Quick Fixes, Quality Service',
+        description: 'Professional repair services for laptops, phones, and computers',
+        buttonText: 'Book Now',
+        buttonLink: '/repair-services',
+      },
+      features: {
+        title: 'Why Choose Eaxy Store',
+        subtitle: 'Your Trusted Tech Partner',
+        description: '4-hour delivery, quality guarantee, expert support',
+        buttonText: '',
+        buttonLink: '',
+      },
+      deals: {
+        title: 'Hot Deals',
+        subtitle: 'Limited Time Offers',
+        description: 'Exclusive discounts on premium tech products',
+        buttonText: 'Shop Deals',
+        buttonLink: '/products#deals',
+      },
+      coverage: {
+        title: 'Delivery Coverage',
+        subtitle: 'Serving Pune & Pimpri-Chinchwad',
+        description: '12 zones across Pune with 4-hour delivery guarantee',
+        buttonText: 'View Coverage',
+        buttonLink: '#coverage',
+      },
+      testimonials: {
+        title: 'Customer Reviews',
+        subtitle: 'Trusted by Thousands',
+        description: 'See what our customers say about their experience',
+        buttonText: '',
+        buttonLink: '',
+      },
+      cta: {
+        title: 'Ready to Experience Fast Delivery?',
+        subtitle: 'Order Now and Get It in 4 Hours',
+        description: 'Premium electronics at your doorstep, faster than ever',
+        buttonText: 'Start Shopping',
+        buttonLink: '/products',
+      },
+    };
+    return content[type] || {};
+  };
+
+  const handleSaveSection = () => {
+    setHomepageSections((sections) =>
+      sections.map((section) =>
+        section.id === editingSection.id
+          ? { ...section, lastUpdated: new Date().toISOString().split('T')[0] }
+          : section
+      )
+    );
+    setShowEditModal(false);
+    setEditingSection(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingSection(null);
+    setEditForm({
+      title: '',
+      subtitle: '',
+      description: '',
+      buttonText: '',
+      buttonLink: '',
+    });
   };
 
   const formatDate = (dateString) => {
@@ -199,7 +314,10 @@ function ContentManagement() {
                     </span>
                   </div>
                   <div className="section-actions">
-                    <button className="action-btn edit">
+                    <button 
+                      className="action-btn edit"
+                      onClick={() => handleEditSection(section)}
+                    >
                       <Edit size={16} />
                       Edit Content
                     </button>
@@ -282,6 +400,16 @@ function ContentManagement() {
           </div>
         )}
       </div>
+
+      {showEditModal && editingSection && (
+        <ContentEditModal
+          section={editingSection}
+          editForm={editForm}
+          setEditForm={setEditForm}
+          onClose={handleCloseEditModal}
+          onSave={handleSaveSection}
+        />
+      )}
     </div>
   );
 }

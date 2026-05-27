@@ -214,30 +214,7 @@ const Chatbot = () => {
             <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
           </svg>
         ) : (
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="ai-icon">
-            {/* AI Brain/Neural Network */}
-            <circle cx="14" cy="14" r="10" stroke="currentColor" strokeWidth="1.5" opacity="0.3"/>
-            <circle cx="14" cy="14" r="6" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
-            
-            {/* Central Core */}
-            <circle cx="14" cy="14" r="2.5" fill="currentColor"/>
-            
-            {/* Neural Connections */}
-            <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
-            <circle cx="19" cy="9" r="1.5" fill="currentColor"/>
-            <circle cx="9" cy="19" r="1.5" fill="currentColor"/>
-            <circle cx="19" cy="19" r="1.5" fill="currentColor"/>
-            
-            <line x1="14" y1="14" x2="9" y2="9" stroke="currentColor" strokeWidth="1.2" opacity="0.6"/>
-            <line x1="14" y1="14" x2="19" y2="9" stroke="currentColor" strokeWidth="1.2" opacity="0.6"/>
-            <line x1="14" y1="14" x2="9" y2="19" stroke="currentColor" strokeWidth="1.2" opacity="0.6"/>
-            <line x1="14" y1="14" x2="19" y2="19" stroke="currentColor" strokeWidth="1.2" opacity="0.6"/>
-            
-            {/* Sparkles/AI Effect */}
-            <path d="M22 6L23 8L22 10L20 9L22 6Z" fill="currentColor" opacity="0.8"/>
-            <path d="M6 3L7 4.5L6 6L4.5 5L6 3Z" fill="currentColor" opacity="0.7"/>
-            <path d="M24 18L25 19.5L24 21L22.5 20L24 18Z" fill="currentColor" opacity="0.6"/>
-          </svg>
+          <img src="/AI_Avatar.webp" alt="AI Assistant" className="chatbot-avatar-icon" />
         )}
         {!isOpen && <span className="chatbot-notification-badge">1</span>}
       </button>

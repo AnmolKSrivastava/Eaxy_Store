@@ -244,10 +244,21 @@
   transition: all 0.2s;
 }
 
-.action-btn.edit:hover {
-  background: rgba(var(--primary-rgb), 0.2);
+.action-btn.edit {
+  background: rgba(var(--primary-rgb), 0.15);
   border-color: var(--primary);
   color: var(--primary);
+  flex: 1;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.action-btn.edit:hover {
+  background: rgba(var(--primary-rgb), 0.25);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
 }
 
 .action-btn.approve {

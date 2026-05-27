@@ -1,0 +1,437 @@
+/* User Registration Modal */
+.user-registration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.user-registration-modal {
+  background: var(--card-bg, #1a1f2b);
+  border-radius: 20px;
+  padding: 48px 40px 40px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom Scrollbar */
+.user-registration-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.user-registration-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.user-registration-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.user-registration-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.user-registration-modal .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #9ca3af);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.user-registration-modal .close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #ffffff);
+}
+
+.user-registration-modal .modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 32px;
+  gap: 16px;
+}
+
+.user-registration-modal .brand-logo-container {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.user-registration-modal .brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.user-registration-modal .modal-header h2 {
+  color: var(--text-primary, #ffffff);
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.user-registration-modal .subtitle {
+  color: var(--text-secondary, #9ca3af);
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Registration Form */
+.user-registration-modal .registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.user-registration-modal .registration-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-registration-modal .registration-form .form-group label {
+  color: var(--text-secondary, #9ca3af);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-registration-modal .registration-form .input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+.user-registration-modal .registration-form .input-icon {
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  color: var(--text-secondary, #9ca3af);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.user-registration-modal .registration-form input,
+.user-registration-modal .registration-form textarea {
+  width: 100%;
+  padding: 13px 16px 13px 48px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: var(--text-primary, #ffffff);
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.user-registration-modal .registration-form textarea {
+  resize: vertical;
+  min-height: 80px;
+  padding-top: 14px;
+}
+
+.user-registration-modal .registration-form input::placeholder,
+.user-registration-modal .registration-form textarea::placeholder {
+  color: var(--text-secondary, #9ca3af);
+  opacity: 0.6;
+}
+
+.user-registration-modal .registration-form input:focus,
+.user-registration-modal .registration-form textarea:focus {
+  outline: none;
+  border-color: var(--primary, #0f6b53);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(15, 107, 83, 0.1);
+}
+
+.user-registration-modal .registration-form input:disabled,
+.user-registration-modal .registration-form textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Signup Methods */
+.user-registration-modal .signup-methods {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.user-registration-modal .signup-method-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-registration-modal .signup-method-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Google Button */
+.user-registration-modal .signup-method-btn.google-btn {
+  background: white;
+  color: #1f2937;
+  border-color: #e5e7eb;
+}
+
+.user-registration-modal .signup-method-btn.google-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.user-registration-modal .google-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Phone Button */
+.user-registration-modal .signup-method-btn.phone-btn {
+  background: linear-gradient(135deg, var(--primary, #0f6b53) 0%, #0a5242 100%);
+  color: white;
+  border-color: var(--primary, #0f6b53);
+}
+
+.user-registration-modal .signup-method-btn.phone-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0a5242 0%, var(--primary, #0f6b53) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 107, 83, 0.4);
+}
+
+/* Complete Registration Button (post-auth mode) */
+.user-registration-modal .signup-method-btn.complete-btn {
+  background: linear-gradient(135deg, var(--gold, #d4af37) 0%, #b8960e 100%);
+  color: #101218;
+  border-color: var(--gold, #d4af37);
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.user-registration-modal .signup-method-btn.complete-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b8960e 0%, var(--gold, #d4af37) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+/* Divider */
+.user-registration-modal .divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 4px 0;
+}
+
+.user-registration-modal .divider::before,
+.user-registration-modal .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-registration-modal .divider span {
+  padding: 0 16px;
+  color: var(--text-secondary, #9ca3af);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Error Message */
+.user-registration-modal .error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  color: #fca5a5;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: shake 0.4s ease;
+  line-height: 1.5;
+}
+
+.user-registration-modal .error-message::before {
+  content: '⚠️';
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* Modal Footer */
+.user-registration-modal .modal-footer {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.user-registration-modal .login-link {
+  color: var(--text-secondary, #9ca3af);
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+  text-align: center;
+  display: block;
+  width: 100%;
+}
+
+.user-registration-modal .link-btn {
+  background: none;
+  border: none;
+  color: var(--primary, #0f6b53);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-size: inherit;
+}
+
+.user-registration-modal .link-btn:hover {
+  color: var(--accent, #d4af37);
+  text-decoration: underline;
+}
+
+/* Scrollbar Styling */
+.user-registration-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.user-registration-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.user-registration-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.user-registration-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .user-registration-modal {
+    padding: 40px 28px 32px;
+    max-width: 100%;
+    border-radius: 16px;
+  }
+
+  .user-registration-modal .brand-logo-container {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 4px;
+  }
+
+  .user-registration-modal .modal-header {
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .user-registration-modal .modal-header h2 {
+    font-size: 22px;
+  }
+
+  .user-registration-modal .subtitle {
+    font-size: 13px;
+  }
+
+  .registration-form {
+    gap: 16px;
+  }
+
+  .user-registration-modal .registration-form input,
+  .user-registration-modal .registration-form textarea {
+    padding: 12px 16px 12px 44px;
+    font-size: 14px;
+  }
+
+  .user-registration-modal .signup-method-btn {
+    padding: 13px 20px;
+    font-size: 14px;
+  }
+
+  .user-registration-modal .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+}

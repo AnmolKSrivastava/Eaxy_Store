@@ -11,7 +11,7 @@
   position: relative;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: 14px;
   background: linear-gradient(140deg, #0f6b53, #d4af37);
   border: 1px solid rgba(212, 175, 55, 0.3);
   cursor: pointer;
@@ -22,7 +22,15 @@
   color: #f5f7fa;
   transition: all 0.3s ease;
   animation: pulse 2s infinite;
-  overflow: visible;
+  overflow: hidden;
+  padding: 0;
+}
+
+.chatbot-avatar-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
 }
 
 .chatbot-toggle-btn:hover {

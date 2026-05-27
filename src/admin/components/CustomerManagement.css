@@ -317,7 +317,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-.modal-header {
+.modal-content .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -329,7 +329,7 @@
   z-index: 10;
 }
 
-.modal-header h2 {
+.modal-content .modal-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--foreground);
