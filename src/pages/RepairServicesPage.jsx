@@ -1,9 +1,26 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, SlidersHorizontal, Star, Clock, Shield } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
-import { repairServices, serviceCategories, servicePriceRanges, serviceSortOptions } from '../data/servicesData';
+import { fetchAllRepairServices, fetchAllServiceCategories } from '../firebase/repairServicesService';
 import { iconMap } from '../components/home/iconMap';
 import './RepairServicesPage.css';
+
+// Static data for price ranges and sort options (moved outside component to prevent re-creation)
+const servicePriceRanges = [
+  { id: 'all', label: 'All Prices', min: 0, max: Infinity },
+  { id: 'under-1k', label: 'Under ₹1,000', min: 0, max: 1000 },
+  { id: '1k-3k', label: '₹1,000 - ₹3,000', min: 1000, max: 3000 },
+  { id: '3k-5k', label: '₹3,000 - ₹5,000', min: 3000, max: 5000 },
+  { id: 'over-5k', label: 'Over ₹5,000', min: 5000, max: Infinity },
+];
+
+const serviceSortOptions = [
+  { value: 'featured', label: 'Featured' },
+  { value: 'price-low', label: 'Price: Low to High' },
+  { value: 'price-high', label: 'Price: High to Low' },
+  { value: 'rating', label: 'Top Rated' },
+  { value: 'duration', label: 'Fastest First' },
+];
 
 function RepairServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -11,6 +28,50 @@ function RepairServicesPage() {
   const [sortBy, setSortBy] = useState('featured');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Firebase data
+  const [repairServices, setRepairServices] = useState([]);
+  const [serviceCategories, setServiceCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Load services and categories from Firebase
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [servicesData, categoriesData] = await Promise.all([
+          fetchAllRepairServices(),
+          fetchAllServiceCategories()
+        ]);
+
+        setRepairServices(servicesData);
+
+        // Build categories with counts
+        const allCategory = {
+          id: 'all',
+          name: 'All Services',
+          icon: 'wrench',
+          count: servicesData.length
+        };
+
+        const categoriesWithCounts = categoriesData.map(cat => ({
+          ...cat,
+          count: servicesData.filter(s => s.category === cat.id).length
+        }));
+
+        setServiceCategories([allCategory, ...categoriesWithCounts]);
+        setError('');
+      } catch (err) {
+        console.error('Error loading repair services:', err);
+        setError('Failed to load services. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Filter and sort services
   const filteredServices = useMemo(() => {
@@ -65,7 +126,7 @@ function RepairServicesPage() {
     }
 
     return services;
-  }, [selectedCategory, selectedPriceRange, sortBy, searchQuery]);
+  }, [selectedCategory, selectedPriceRange, sortBy, searchQuery, repairServices]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
@@ -92,8 +153,20 @@ function RepairServicesPage() {
       {/* Main Content */}
       <section className="section services-section">
         <div className="container">
-          {/* Search and Filters Bar */}
-          <div className="services-toolbar reveal">
+          {error && (
+            <div className="alert alert-error" style={{ marginBottom: '2rem' }}>
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="loading-state" style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--muted)' }}>
+              <p>Loading repair services...</p>
+            </div>
+          ) : (
+            <>
+              {/* Search and Filters Bar */}
+              <div className="services-toolbar reveal">
             <div className="search-box">
               <Search size={20} />
               <input
@@ -241,6 +314,8 @@ function RepairServicesPage() {
               )}
             </main>
           </div>
+            </>
+          )}
         </div>
       </section>
 

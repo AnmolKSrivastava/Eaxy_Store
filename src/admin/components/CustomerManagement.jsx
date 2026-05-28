@@ -1,150 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Search, Eye, ShoppingBag, Heart, Star, CheckCircle, TrendingUp } from 'lucide-react';
 import CustomerDetailModal from './CustomerDetailModal';
+import { getAllUsers } from '../../firebase/userService';
 import './CustomerManagement.css';
 
 function CustomerManagement() {
-  const [customers] = useState([
-    {
-      id: 'CUST-001',
-      name: 'Rahul Sharma',
-      email: 'rahul.sharma@email.com',
-      phone: '+91 98765 43210',
-      location: 'Kothrud, Pune',
-      totalOrders: 12,
-      totalSpent: 245680,
-      averageRating: 4.8,
-      wishlistItems: 5,
-      cartItems: 2,
-      status: 'active',
-      joinDate: '2025-08-15',
-      lastOrder: '2026-05-20',
-      reviews: 8,
-      testimonials: 1,
-      contactSubmissions: 2,
-      purchaseHistory: [
-        { date: '2026-05-20', product: 'MacBook Air M2', amount: 84999, status: 'delivered' },
-        { date: '2026-04-12', product: 'iPhone 15 Pro', amount: 124999, status: 'delivered' },
-        { date: '2026-03-08', product: 'AirPods Pro 2', amount: 21999, status: 'delivered' }
-      ]
-    },
-    {
-      id: 'CUST-002',
-      name: 'Priya Deshmukh',
-      email: 'priya.d@email.com',
-      phone: '+91 97654 32100',
-      location: 'Hinjewadi, Pune',
-      totalOrders: 8,
-      totalSpent: 156780,
-      averageRating: 4.9,
-      wishlistItems: 12,
-      cartItems: 0,
-      status: 'active',
-      joinDate: '2025-11-22',
-      lastOrder: '2026-05-18',
-      reviews: 5,
-      testimonials: 2,
-      contactSubmissions: 1,
-      purchaseHistory: [
-        { date: '2026-05-18', product: 'Dell XPS 15', amount: 124999, status: 'delivered' },
-        { date: '2026-02-14', product: 'Sony WH-1000XM5', amount: 26999, status: 'delivered' }
-      ]
-    },
-    {
-      id: 'CUST-003',
-      name: 'Amit Patil',
-      email: 'amit.patil@email.com',
-      phone: '+91 99887 76543',
-      location: 'Baner, Pune',
-      totalOrders: 15,
-      totalSpent: 389450,
-      averageRating: 4.7,
-      wishlistItems: 8,
-      cartItems: 3,
-      status: 'active',
-      joinDate: '2025-06-10',
-      lastOrder: '2026-05-22',
-      reviews: 12,
-      testimonials: 3,
-      contactSubmissions: 4,
-      purchaseHistory: [
-        { date: '2026-05-22', product: 'Samsung Galaxy S24', amount: 89999, status: 'processing' },
-        { date: '2026-04-28', product: 'Logitech MX Master 3S', amount: 8999, status: 'delivered' },
-        { date: '2026-03-15', product: 'ASUS ROG Strix G15', amount: 139999, status: 'delivered' }
-      ]
-    },
-    {
-      id: 'CUST-004',
-      name: 'Sneha Kulkarni',
-      email: 'sneha.k@email.com',
-      phone: '+91 98123 45678',
-      location: 'Hadapsar, Pune',
-      totalOrders: 5,
-      totalSpent: 98750,
-      averageRating: 5.0,
-      wishlistItems: 15,
-      cartItems: 1,
-      status: 'active',
-      joinDate: '2026-01-05',
-      lastOrder: '2026-05-15',
-      reviews: 5,
-      testimonials: 1,
-      contactSubmissions: 0,
-      purchaseHistory: [
-        { date: '2026-05-15', product: 'OnePlus 12', amount: 64999, status: 'delivered' },
-        { date: '2026-03-20', product: 'Keychron K8 Pro', amount: 11999, status: 'delivered' }
-      ]
-    },
-    {
-      id: 'CUST-005',
-      name: 'Vikram Joshi',
-      email: 'vikram.j@email.com',
-      phone: '+91 96543 21098',
-      location: 'Wakad, Pune',
-      totalOrders: 3,
-      totalSpent: 45780,
-      averageRating: 4.3,
-      wishlistItems: 6,
-      cartItems: 0,
-      status: 'inactive',
-      joinDate: '2025-09-18',
-      lastOrder: '2026-02-10',
-      reviews: 2,
-      testimonials: 0,
-      contactSubmissions: 1,
-      purchaseHistory: [
-        { date: '2026-02-10', product: 'Samsung T7 SSD', amount: 8499, status: 'delivered' },
-        { date: '2025-12-05', product: 'Anker PowerCore', amount: 3999, status: 'delivered' }
-      ]
-    },
-    {
-      id: 'CUST-006',
-      name: 'Neha Rathod',
-      email: 'neha.rathod@email.com',
-      phone: '+91 97777 88899',
-      location: 'Viman Nagar, Pune',
-      totalOrders: 20,
-      totalSpent: 567890,
-      averageRating: 4.9,
-      wishlistItems: 20,
-      cartItems: 5,
-      status: 'vip',
-      joinDate: '2025-03-12',
-      lastOrder: '2026-05-21',
-      reviews: 18,
-      testimonials: 4,
-      contactSubmissions: 6,
-      purchaseHistory: [
-        { date: '2026-05-21', product: 'MacBook Pro 2021 Refurbished', amount: 89999, status: 'out-for-delivery' },
-        { date: '2026-05-10', product: 'Google Pixel 8 Pro', amount: 94999, status: 'delivered' }
-      ]
-    }
-  ]);
-
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Fetch users from Firebase
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const users = await getAllUsers();
+        
+        // Transform Firebase user data to match component format
+        const transformedUsers = users.map(user => ({
+          id: user.uid || user.id,
+          name: user.name || 'N/A',
+          email: user.email || 'N/A',
+          phone: user.phone || 'N/A',
+          location: user.address || 'N/A',
+          photoURL: user.photoURL || null,
+          provider: user.provider || 'email',
+          joinDate: user.createdAt ? new Date(user.createdAt.seconds * 1000).toISOString().split('T')[0] : 'N/A',
+          lastLogin: user.updatedAt ? new Date(user.updatedAt.seconds * 1000).toISOString().split('T')[0] : 'N/A',
+          // These fields will be populated when order/cart/wishlist collections are implemented
+          totalOrders: 0,
+          totalSpent: 0,
+          averageRating: 0,
+          wishlistItems: 0,
+          cartItems: 0,
+          status: 'active', // Default status, can be updated based on last activity
+          reviews: 0,
+          testimonials: 0,
+          contactSubmissions: 0,
+          purchaseHistory: []
+        }));
+        
+        setCustomers(transformedUsers);
+      } catch (err) {
+        console.error('Error fetching customers:', err);
+        setError('Failed to load customer data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
 
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -188,7 +99,57 @@ function CustomerManagement() {
   const totalCustomers = customers.length;
   const activeCustomers = customers.filter(c => c.status === 'active' || c.status === 'vip').length;
   const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpent, 0);
-  const averageOrderValue = totalRevenue / customers.reduce((sum, c) => sum + c.totalOrders, 0);
+  const totalOrdersCount = customers.reduce((sum, c) => sum + c.totalOrders, 0);
+  const averageOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0;
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="customer-management">
+        <div className="loading-state">
+          <p>Loading customer data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="customer-management">
+        <div className="customer-header">
+          <div>
+            <h1>👥 Customer Management</h1>
+            <p className="customer-subtitle">Manage customer database, analytics, and engagement</p>
+          </div>
+        </div>
+        <div className="error-message" style={{
+          padding: '2rem',
+          background: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: '12px',
+          color: '#ef4444',
+          textAlign: 'center'
+        }}>
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '1rem',
+              padding: '0.75rem 1.5rem',
+              background: 'var(--primary)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="customer-management">
@@ -261,7 +222,29 @@ function CustomerManagement() {
       </div>
 
       <div className="customers-table-container">
-        <table className="customers-table">
+        {filteredCustomers.length === 0 ? (
+          <div style={{
+            padding: '3rem',
+            textAlign: 'center',
+            color: 'var(--muted)',
+            background: 'var(--card)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <Users size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+            <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+              {searchTerm || statusFilter !== 'all' 
+                ? 'No customers found matching your filters' 
+                : 'No customers registered yet'}
+            </p>
+            <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>
+              {searchTerm || statusFilter !== 'all'
+                ? 'Try adjusting your search or filter criteria'
+                : 'Customers will appear here once they register on your platform'}
+            </p>
+          </div>
+        ) : (
+          <table className="customers-table">
           <thead>
             <tr>
               <th>Customer</th>
@@ -281,7 +264,20 @@ function CustomerManagement() {
                 <td>
                   <div className="customer-info">
                     <div className="customer-avatar">
-                      {customer.name.charAt(0).toUpperCase()}
+                      {customer.photoURL ? (
+                        <img 
+                          src={customer.photoURL} 
+                          alt={customer.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: '50%'
+                          }}
+                        />
+                      ) : (
+                        customer.name.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <div>
                       <div className="customer-name">{customer.name}</div>
@@ -332,11 +328,6 @@ function CustomerManagement() {
             ))}
           </tbody>
         </table>
-        {filteredCustomers.length === 0 && (
-          <div className="empty-state">
-            <Users size={48} />
-            <p>No customers found</p>
-          </div>
         )}
       </div>
 

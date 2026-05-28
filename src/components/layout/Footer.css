@@ -64,6 +64,25 @@
   transform: scale(1.5);
 }
 
+/* Back to Top Link */
+.back-to-top-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.back-to-top-link:hover {
+  color: var(--gold);
+  text-decoration: underline;
+}
+
 @media (max-width: 1100px) {
   .footer-grid {
     grid-template-columns: 1fr;

@@ -3,11 +3,12 @@ import AdminTopBar from './components/AdminTopBar';
 import AdminSidebar from './components/AdminSidebar';
 import DashboardOverview from './components/DashboardOverview';
 import OrderManagement from './components/OrderManagement';
-import ProductManagement from './components/ProductManagement';
+import ProductsManagement from './components/ProductsManagement';
 import CategoriesManagement from './components/CategoriesManagement';
 import DealsManagement from './components/DealsManagement';
-import RepairCatalog from './components/RepairCatalog';
 import TechniciansManagement from './components/TechniciansManagement';
+import { RepairServicesManagement } from './components/RepairServicesManagement';
+import { ServiceCategoriesManagement } from './components/ServiceCategoriesManagement';
 import CustomerManagement from './components/CustomerManagement';
 import CoverageManagement from './components/CoverageManagement';
 import ContentManagement from './components/ContentManagement';
@@ -22,7 +23,7 @@ function AdminDashboardPage() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [orderTab, setOrderTab] = useState('products');
   const [productView, setProductView] = useState('inventory');
-  const [serviceView, setServiceView] = useState('catalog');
+  const [serviceView, setServiceView] = useState('services');
   const [settingsView, setSettingsView] = useState('password');
   const { hasPermission } = useAdmin();
 
@@ -43,17 +44,18 @@ function AdminDashboardPage() {
       case 'products':
         if (!hasPermission('products')) return <Denied />;
         switch (productView) {
-          case 'inventory':   return <ProductManagement />;
+          case 'inventory':   return <ProductsManagement />;
           case 'categories':  return <CategoriesManagement />;
           case 'deals':       return <DealsManagement />;
-          default:            return <ProductManagement />;
+          default:            return <ProductsManagement />;
         }
       case 'services':
         if (!hasPermission('products')) return <Denied />;
         switch (serviceView) {
-          case 'catalog':     return <RepairCatalog />;
+          case 'services':    return <RepairServicesManagement />;
+          case 'categories':  return <ServiceCategoriesManagement />;
           case 'technicians': return <TechniciansManagement />;
-          default:            return <RepairCatalog />;
+          default:            return <RepairServicesManagement />;
         }
       case 'customers':
         return hasPermission('users') ? <CustomerManagement /> : <Denied />;

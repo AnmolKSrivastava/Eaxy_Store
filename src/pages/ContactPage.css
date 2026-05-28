@@ -168,6 +168,12 @@
   cursor: pointer;
 }
 
+.form-group select option {
+  background: var(--panel, #1a1f2b);
+  color: var(--text, #f5f7fa);
+  padding: 0.5rem;
+}
+
 .contact-form .btn-lg {
   width: 100%;
   display: flex;

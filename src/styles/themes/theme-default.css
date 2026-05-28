@@ -14,7 +14,9 @@
   /* Common aliases */
   --background: var(--bg);
   --card: var(--panel);
+  --card-bg: var(--panel);
   --foreground: var(--text);
+  --muted-foreground: var(--muted);
   --primary: var(--green);
   --primary-rgb: 15, 107, 83;
 

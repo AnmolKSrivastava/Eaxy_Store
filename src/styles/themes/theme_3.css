@@ -43,6 +43,15 @@
   /* Shadows — replaced with coloured glow lines */
   --shadow-sm: 0 0 0 1px rgba(15, 107, 83, 0.6);
   --shadow-md: 4px 8px 0 rgba(15, 107, 83, 0.25);
+
+  /* Common aliases */
+  --background: var(--bg);
+  --card: var(--panel);
+  --card-bg: var(--panel);
+  --foreground: var(--text);
+  --muted-foreground: var(--muted);
+  --primary: var(--green);
+  --primary-rgb: 15, 107, 83;
 }
 
 /* ─── Body — subtle grid pattern ─────────────────────────────── */

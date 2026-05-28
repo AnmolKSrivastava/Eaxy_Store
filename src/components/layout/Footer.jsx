@@ -56,6 +56,12 @@ function Footer() {
           <a href="#top">Privacy Policy</a>
           <a href="#top">Terms of Service</a>
           <a href="#top">Warranty Info</a>
+          <button 
+            className="back-to-top-link" 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            Back to Top ↑
+          </button>
         </div>
       </div>
     </footer>

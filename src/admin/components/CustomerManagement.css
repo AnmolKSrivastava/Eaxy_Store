@@ -4,6 +4,16 @@
   margin: 0 auto;
 }
 
+/* Loading State */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
 .customer-header {
   margin-bottom: 2rem;
 }
@@ -127,6 +137,12 @@
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.filter-select option {
+  background: var(--card, #1a1f2b);
+  color: var(--foreground, #f5f7fa);
+  padding: 0.5rem;
 }
 
 /* Table */

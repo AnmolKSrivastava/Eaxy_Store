@@ -2,6 +2,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import RepairServicesPage from './pages/RepairServicesPage';
 import ContactPage from './pages/ContactPage';
 import WishlistPage from './pages/WishlistPage';
@@ -12,7 +13,7 @@ import AdminForgotPassword from './admin/pages/AdminForgotPassword';
 import AdminResetPassword from './admin/pages/AdminResetPassword';
 import AdminPasswordSetup from './admin/pages/AdminPasswordSetup';
 import ProtectedAdminRoute from './admin/components/ProtectedAdminRoute';
-import { Chatbot } from './components/shared';
+import { Chatbot, ScrollToTop } from './components/shared';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdminProvider } from './contexts/AdminContext';
 
@@ -26,6 +27,7 @@ function AppContent() {
         {/* User-facing routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:productId" element={<ProductDetailPage />} />
         <Route path="/repair-services" element={<RepairServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
@@ -47,6 +49,7 @@ function AppContent() {
           }
         />
       </Routes>
+      <ScrollToTop />
       {!isAdminPage && <Chatbot />}
     </>
   );

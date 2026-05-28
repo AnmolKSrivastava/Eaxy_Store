@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, getDocs, setDoc, collection, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from './config';
 
 /**
@@ -45,4 +45,29 @@ export const updateUserDoc = async (uid, data) => {
     { ...data, updatedAt: serverTimestamp() },
     { merge: true }
   );
+};
+
+/**
+ * Fetch all users from Firestore.
+ * Returns an array of user objects with their UID as a property.
+ */
+export const getAllUsers = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    
+    const users = [];
+    snapshot.forEach((doc) => {
+      users.push({
+        id: doc.id,
+        ...doc.data(),
+      });
+    });
+    
+    return users;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
 };

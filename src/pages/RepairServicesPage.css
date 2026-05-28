@@ -107,6 +107,12 @@
   box-shadow: 0 0 0 3px rgba(15, 107, 83, 0.1);
 }
 
+.sort-select option {
+  background: var(--panel, #1a1f2b);
+  color: var(--text, #f5f7fa);
+  padding: 0.5rem;
+}
+
 /* Layout */
 .services-layout {
   display: grid;

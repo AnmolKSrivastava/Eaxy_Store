@@ -46,7 +46,20 @@ function CustomerDetailModal({ customer, onClose }) {
         <div className="modal-body">
           <div className="customer-detail-header">
             <div className="customer-avatar-large">
-              {customer.name.charAt(0).toUpperCase()}
+              {customer.photoURL ? (
+                <img 
+                  src={customer.photoURL} 
+                  alt={customer.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '50%'
+                  }}
+                />
+              ) : (
+                customer.name.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="customer-detail-info">
               <h3>{customer.name}</h3>
@@ -72,6 +85,12 @@ function CustomerDetailModal({ customer, onClose }) {
                 <span>📍</span>
                 <span>{customer.location}</span>
               </div>
+              {customer.provider && (
+                <div className="detail-item">
+                  <span>🔐</span>
+                  <span>Sign-in: {customer.provider === 'google.com' ? 'Google' : customer.provider}</span>
+                </div>
+              )}
             </div>
 
             <div className="detail-section">
@@ -112,16 +131,27 @@ function CustomerDetailModal({ customer, onClose }) {
           <div className="detail-section">
             <h4>🛍️ Purchase History</h4>
             <div className="purchase-history">
-              {customer.purchaseHistory.map((purchase, idx) => (
-                <div key={idx} className="purchase-item">
-                  <div className="purchase-date">{formatDate(purchase.date)}</div>
-                  <div className="purchase-product">{purchase.product}</div>
-                  <div className="purchase-amount">{formatPrice(purchase.amount)}</div>
-                  <span className={`purchase-status ${purchase.status}`}>
-                    {purchase.status}
-                  </span>
+              {customer.purchaseHistory && customer.purchaseHistory.length > 0 ? (
+                customer.purchaseHistory.map((purchase, idx) => (
+                  <div key={idx} className="purchase-item">
+                    <div className="purchase-date">{formatDate(purchase.date)}</div>
+                    <div className="purchase-product">{purchase.product}</div>
+                    <div className="purchase-amount">{formatPrice(purchase.amount)}</div>
+                    <span className={`purchase-status ${purchase.status}`}>
+                      {purchase.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '2rem', 
+                  color: 'var(--muted)',
+                  fontSize: '0.9rem'
+                }}>
+                  No purchase history available yet
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -149,18 +179,29 @@ function CustomerDetailModal({ customer, onClose }) {
           <div className="detail-section">
             <h4>📅 Activity Timeline</h4>
             <div className="timeline">
-              <div className="timeline-item">
-                <div className="timeline-dot"></div>
-                <div className="timeline-content">
-                  <strong>Last Order</strong>
-                  <span>{formatDate(customer.lastOrder)}</span>
+              {customer.lastLogin && customer.lastLogin !== 'N/A' && (
+                <div className="timeline-item">
+                  <div className="timeline-dot"></div>
+                  <div className="timeline-content">
+                    <strong>Last Login</strong>
+                    <span>{formatDate(customer.lastLogin)}</span>
+                  </div>
                 </div>
-              </div>
+              )}
+              {customer.lastOrder && customer.lastOrder !== 'N/A' && (
+                <div className="timeline-item">
+                  <div className="timeline-dot"></div>
+                  <div className="timeline-content">
+                    <strong>Last Order</strong>
+                    <span>{formatDate(customer.lastOrder)}</span>
+                  </div>
+                </div>
+              )}
               <div className="timeline-item">
                 <div className="timeline-dot"></div>
                 <div className="timeline-content">
                   <strong>Joined</strong>
-                  <span>{formatDate(customer.joinDate)}</span>
+                  <span>{customer.joinDate !== 'N/A' ? formatDate(customer.joinDate) : 'N/A'}</span>
                 </div>
               </div>
             </div>

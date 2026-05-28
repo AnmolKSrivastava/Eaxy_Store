@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -21,11 +22,14 @@ const auth = getAuth(app);
 // Firestore Database
 const db = getFirestore(app);
 
+// Firebase Storage
+const storage = getStorage(app);
+
 // Google Auth Provider for user login
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-export { auth, googleProvider, db };
+export { auth, googleProvider, db, storage };
 export default app;

@@ -1,61 +1,105 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, Star, ShoppingCart } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
-import { allProducts, productCategories, sortOptions, priceRanges } from '../data/productsData';
+import { sortOptions, priceRanges } from '../data/productsData';
+import { fetchAllProducts, fetchAllCategories } from '../firebase/productsService';
 import { iconMap } from '../components/home/iconMap';
 import './ProductsPage.css';
 
 function ProductsPage() {
+  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
+  // Fetch products and categories from Firebase
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const [productsData, categoriesData] = await Promise.all([
+          fetchAllProducts(),
+          fetchAllCategories()
+        ]);
+        setProducts(productsData);
+        
+        // Transform categories to match UI format
+        const transformedCategories = [
+          { id: 'all', name: 'All Products', icon: 'package', count: productsData.length },
+          ...categoriesData.map(cat => ({
+            id: cat.slug,
+            name: cat.title,
+            icon: (cat.icon || 'package').toLowerCase(),
+            count: productsData.filter(p => p.category === cat.slug).length
+          }))
+        ];
+        setCategories(transformedCategories);
+      } catch (err) {
+        setError('Failed to load products: ' + err.message);
+        console.error('Error loading products:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    let products = allProducts;
+    let filteredList = [...products];
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      products = products.filter(p => p.category === selectedCategory);
+      filteredList = filteredList.filter(p => p.category === selectedCategory);
     }
 
     // Filter by price range
     const priceRange = priceRanges.find(r => r.id === selectedPriceRange);
     if (priceRange) {
-      products = products.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
+      filteredList = filteredList.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
     }
 
     // Filter by search query
     if (searchQuery) {
-      products = products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.specs.some(spec => spec.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
+      filteredList = filteredList.filter(p => {
+        const nameMatch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const specsMatch = Array.isArray(p.specs) && p.specs.some(spec => 
+          spec.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        return nameMatch || specsMatch;
+      });
     }
 
     // Sort products
     switch (sortBy) {
       case 'price-low':
-        products.sort((a, b) => a.price - b.price);
+        filteredList.sort((a, b) => a.price - b.price);
         break;
       case 'price-high':
-        products.sort((a, b) => b.price - a.price);
+        filteredList.sort((a, b) => b.price - a.price);
         break;
       case 'rating':
-        products.sort((a, b) => b.rating - a.rating);
+        filteredList.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case 'newest':
-        products.sort((a, b) => b.id - a.id);
+        filteredList.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         break;
       default:
         // Keep original order for featured
         break;
     }
 
-    return products;
-  }, [selectedCategory, selectedPriceRange, sortBy, searchQuery]);
+    return filteredList;
+  }, [products, selectedCategory, selectedPriceRange, sortBy, searchQuery]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
@@ -79,7 +123,33 @@ function ProductsPage() {
         </div>
       </section>
 
+      {/* Loading State */}
+      {loading && (
+        <section className="section">
+          <div className="container">
+            <div className="products-loading reveal">
+              <p>Loading products...</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <section className="section">
+          <div className="container">
+            <div className="products-error reveal">
+              <p className="error-message">{error}</p>
+              <button className="btn btn-primary" onClick={() => window.location.reload()}>
+                Retry
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Main Content */}
+      {!loading && !error && (
       <section className="section products-section">
         <div className="container">
           {/* Search and Filters Bar */}
@@ -122,8 +192,8 @@ function ProductsPage() {
               <div className="filter-group reveal">
                 <h3>Categories</h3>
                 <div className="category-filters">
-                  {productCategories.map((category) => {
-                    const Icon = iconMap[category.icon];
+                  {categories.map((category) => {
+                    const Icon = iconMap[category.icon] || iconMap['package'];
                     return (
                       <button
                         key={category.id}
@@ -188,6 +258,7 @@ function ProductsPage() {
                       key={product.id} 
                       className="product-card reveal"
                       style={{ animationDelay: `${idx * 0.05}s` }}
+                      onClick={() => navigate(`/products/${product.id}`)}
                     >
                       {product.badge && (
                         <span className="product-badge">{product.badge}</span>
@@ -199,13 +270,18 @@ function ProductsPage() {
                         <img src={product.image} alt={product.name} />
                       </div>
                       <div className="product-info">
-                        <h3>{product.name}</h3>
+                        <div className="product-title-row">
+                          <h3>{product.name}</h3>
+                          {product.category && product.category.toLowerCase().includes('refurbish') && (
+                            <span className="refurbished-badge">Refurbished</span>
+                          )}
+                        </div>
                         <div className="product-rating">
                           <Star size={14} fill="var(--gold)" stroke="var(--gold)" />
-                          <span>{product.rating}</span>
+                          <span>{product.rating || 4.5}</span>
                         </div>
                         <ul className="product-specs">
-                          {product.specs.slice(0, 3).map((spec, i) => (
+                          {Array.isArray(product.specs) && product.specs.slice(0, 3).map((spec, i) => (
                             <li key={i}>{spec}</li>
                           ))}
                         </ul>
@@ -247,6 +323,7 @@ function ProductsPage() {
           </div>
         </div>
       </section>
+      )}
 
       <Footer />
     </div>

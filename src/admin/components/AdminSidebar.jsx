@@ -16,7 +16,7 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'orders', label: 'Orders', icon: ShoppingCart, submenu: ['Product Orders', 'Repair Requests'] },
     { id: 'products', label: 'Products', icon: Package, submenu: ['Inventory', 'Categories', 'Deals'] },
-    { id: 'services', label: 'Services', icon: Wrench, submenu: ['Repair Catalog', 'Technicians'] },
+    { id: 'services', label: 'Services', icon: Wrench, submenu: ['Repair Services', 'Service Categories', 'Technicians'] },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'logistics', label: 'Coverage & Logistics', icon: MapPin },
     { id: 'content', label: 'Content', icon: FileText },
@@ -31,7 +31,7 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
       const viewMap = ['inventory', 'categories', 'deals'];
       return viewMap.indexOf(productView);
     } else if (itemId === 'services') {
-      const viewMap = ['catalog', 'technicians'];
+      const viewMap = ['services', 'categories', 'technicians'];
       return viewMap.indexOf(serviceView);
     }
     return -1;
@@ -67,7 +67,7 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
                           setProductView(viewMap[idx]);
                         } else if (item.id === 'services') {
                           // Map submenu items to service views
-                          const viewMap = ['catalog', 'technicians'];
+                          const viewMap = ['services', 'categories', 'technicians'];
                           setServiceView(viewMap[idx]);
                         }
                       }}
