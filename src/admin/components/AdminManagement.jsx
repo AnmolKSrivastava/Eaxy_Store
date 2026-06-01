@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { UserPlus, Trash2, RefreshCw, Shield, User } from 'lucide-react';
 import { useAdmin } from '../../contexts/AdminContext';
 import {
-  fetchAllAdmins, addAdmin, removeAdmin, updateAdminRole, ROLES
+  fetchAllAdmins, removeAdmin, updateAdminRole, ROLES
 } from '../../firebase/adminService';
-import { sendAdminPasswordResetEmail } from '../../firebase/authService';
+import { sendAdminInviteViaCloudFunction } from '../../firebase/cloudFunctionsService';
 import { logActivity } from '../../firebase/activityLogger';
 
 const ROLE_LABELS = { 
@@ -55,10 +55,15 @@ function AdminManagement() {
     if (!newEmail.trim()) return;
     try {
       setAdding(true);
-      await addAdmin(newEmail.trim(), newRole, adminSession.email);
-      await sendAdminPasswordResetEmail(newEmail.trim());
-      await logActivity('admin_added', `Added ${newEmail} as ${newRole}`, adminSession.email);
-      flash('success', `Invite sent to ${newEmail}. They'll receive a password setup email.`);
+      
+      // Call Cloud Function to create admin and send invitation
+      const result = await sendAdminInviteViaCloudFunction(
+        newEmail.trim(), 
+        newRole,
+        newEmail.split('@')[0] // Use email prefix as display name
+      );
+      
+      flash('success', result.message || `Invite sent to ${newEmail}. They'll receive a password setup email.`);
       setNewEmail('');
       setNewRole('admin');
       loadAdmins();
