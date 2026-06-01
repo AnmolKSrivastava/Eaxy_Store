@@ -56,22 +56,28 @@ function AdminManagement() {
     if (!newEmail.trim()) return;
     try {
       setAdding(true);
+      const targetEmail = newEmail.trim();
+      console.log('[AdminInvite] Step 1: Starting invite for', targetEmail, 'role:', newRole);
       
       // Step 1: Call Cloud Function to create Firebase Auth user + Firestore admin document
-      await sendAdminInviteViaCloudFunction(
-        newEmail.trim(), 
+      const cloudResult = await sendAdminInviteViaCloudFunction(
+        targetEmail, 
         newRole,
-        newEmail.split('@')[0]
+        targetEmail.split('@')[0]
       );
+      console.log('[AdminInvite] Step 1 complete: Cloud Function response =', cloudResult);
 
       // Step 2: Now that the user exists in Firebase Auth, send the password reset email
-      await sendAdminPasswordResetEmail(newEmail.trim());
+      console.log('[AdminInvite] Step 2: Sending password reset email to', targetEmail);
+      await sendAdminPasswordResetEmail(targetEmail);
+      console.log('[AdminInvite] Step 2 complete: Password reset email sent successfully to', targetEmail);
       
-      flash('success', `Invite sent to ${newEmail}. They'll receive a password setup email shortly.`);
+      flash('success', `Invite sent to ${targetEmail}. They'll receive a password setup email shortly.`);
       setNewEmail('');
       setNewRole('admin');
       loadAdmins();
     } catch (err) {
+      console.error('[AdminInvite] ERROR:', err.code || '(no code)', err.message, err);
       flash('error', err.message);
     } finally {
       setAdding(false);

@@ -13,11 +13,13 @@ export async function sendAdminInviteViaCloudFunction(email, role, displayName =
   try {
     // Get current user's ID token for authentication
     const user = auth.currentUser;
+    console.log('[CloudFn] sendAdminInvite: currentUser =', user?.email ?? 'null');
     if (!user) {
       throw new Error('You must be signed in to send invitations.');
     }
     
     const idToken = await user.getIdToken();
+    console.log('[CloudFn] sendAdminInvite: got ID token, calling function for', email);
     
     const response = await fetch(
       'https://us-central1-eaxy-store.cloudfunctions.net/sendAdminInvite',
@@ -31,7 +33,9 @@ export async function sendAdminInviteViaCloudFunction(email, role, displayName =
       }
     );
 
+    console.log('[CloudFn] sendAdminInvite: HTTP status =', response.status);
     const data = await response.json();
+    console.log('[CloudFn] sendAdminInvite: response body =', data);
     
     if (!response.ok) {
       throw new Error(data.error || `HTTP error! status: ${response.status}`);
@@ -39,7 +43,7 @@ export async function sendAdminInviteViaCloudFunction(email, role, displayName =
     
     return data.result;
   } catch (error) {
-    console.error('Error calling sendAdminInvite Cloud Function:', error);
+    console.error('[CloudFn] sendAdminInvite ERROR:', error);
     throw new Error(error.message || 'Failed to send admin invitation');
   }
 }

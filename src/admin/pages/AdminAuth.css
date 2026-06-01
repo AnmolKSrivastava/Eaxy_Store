@@ -113,6 +113,16 @@
   font-size: 0.85rem;
 }
 
+.admin-auth-invite-banner {
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #d4af37;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
 .admin-auth-success {
   background: rgba(15, 107, 83, 0.15);
   border: 1px solid rgba(15, 107, 83, 0.3);

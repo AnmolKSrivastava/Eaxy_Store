@@ -49,7 +49,7 @@ function AdminPasswordSetup() {
       setError('');
       await confirmAdminPasswordReset(oobCode, password);
       setDone(true);
-      setTimeout(() => navigate('/admin/login'), 2500);
+      setTimeout(() => navigate('/admin/login?invited=true'), 2500);
     } catch (err) {
       setError(err.message || 'Failed to set up password.');
     } finally {

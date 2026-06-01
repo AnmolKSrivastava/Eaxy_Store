@@ -14,7 +14,21 @@ export async function signInWithEmailPassword(email, password) {
 }
 
 export async function sendAdminPasswordResetEmail(email) {
-  await sendPasswordResetEmail(auth, email);
+  const continueUrl = `${window.location.origin}/admin/password-setup`;
+  console.log('[authService] sendAdminPasswordResetEmail called for:', email);
+  console.log('[authService] continueUrl:', continueUrl);
+  console.log('[authService] auth.currentUser:', auth.currentUser?.email ?? 'null');
+  const actionCodeSettings = {
+    url: continueUrl,
+    handleCodeInApp: false,
+  };
+  try {
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    console.log('[authService] sendPasswordResetEmail resolved — email dispatched to Firebase servers');
+  } catch (err) {
+    console.error('[authService] sendPasswordResetEmail FAILED:', err.code, err.message);
+    throw err;
+  }
 }
 
 export async function confirmAdminPasswordReset(oobCode, newPassword) {

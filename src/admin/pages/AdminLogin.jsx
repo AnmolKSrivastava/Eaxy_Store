@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
 import { signInWithEmailPassword } from '../../firebase/authService';
 import { isAdmin } from '../../firebase/adminService';
@@ -7,6 +7,8 @@ import './AdminAuth.css';
 
 function AdminLogin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isInvited = searchParams.get('invited') === 'true';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -50,6 +52,11 @@ function AdminLogin() {
           <p>Sign in to manage Eaxy Store</p>
         </div>
 
+        {isInvited && (
+          <div className="admin-auth-invite-banner">
+            🎉 You've been added as an admin to Eaxy Store! Please log in with your new password.
+          </div>
+        )}
         {error && <div className="admin-auth-error">{error}</div>}
 
         <form className="admin-auth-form" onSubmit={handleSubmit}>

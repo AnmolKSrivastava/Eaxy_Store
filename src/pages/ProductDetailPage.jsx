@@ -4,17 +4,23 @@ import { Star, ShoppingCart, Heart, Share2, Check, AlertCircle, ArrowLeft } from
 import { Footer, Navbar } from '../components/layout';
 import { ReviewSection } from '../components/shared';
 import { fetchProductById, fetchProductsByCategory } from '../firebase/productsService';
+import { useCart } from '../contexts/CartContext';
+import { useWishlist } from '../contexts/WishlistContext';
 import './ProductDetailPage.css';
 
 function ProductDetailPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const { addToCart, isInCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [cartSuccess, setCartSuccess] = useState(false);
 
   useEffect(() => {
     const loadProductData = async () => {
@@ -66,14 +72,38 @@ function ProductDetailPage() {
     return 0;
   };
 
-  const handleAddToCart = () => {
-    // TODO: Implement cart functionality
-    console.log('Add to cart:', { product, quantity });
+  const handleAddToCart = async () => {
+    if (!product) return;
+    
+    try {
+      setAddingToCart(true);
+      await addToCart(product, quantity);
+      setCartSuccess(true);
+      
+      // Reset success message after 2 seconds
+      setTimeout(() => setCartSuccess(false), 2000);
+      
+      // Reset quantity to 1
+      setQuantity(1);
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      setError('Failed to add to cart. Please try again.');
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
-  const handleAddToWishlist = () => {
-    // TODO: Implement wishlist functionality
-    console.log('Add to wishlist:', product);
+  const handleAddToWishlist = async () => {
+    if (!product) return;
+    
+    try {
+      await toggleWishlist(product.id);
+    } catch (err) {
+      console.error('Error toggling wishlist:', err);
+      setError('Failed to update wishlist. Please try again.');
+      setTimeout(() => setError(''), 3000);
+    }
   };
 
   const handleShare = async () => {
@@ -261,18 +291,38 @@ function ProductDetailPage() {
                   <button 
                     className="btn btn-primary btn-large"
                     onClick={handleAddToCart}
-                    disabled={!product.inStock}
+                    disabled={!product.inStock || addingToCart}
                   >
                     <ShoppingCart size={20} />
-                    {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                    {addingToCart 
+                      ? 'Adding...' 
+                      : cartSuccess 
+                        ? 'Added!' 
+                        : !product.inStock 
+                          ? 'Out of Stock' 
+                          : isInCart(product.id)
+                            ? 'Add More'
+                            : 'Add to Cart'
+                    }
                   </button>
-                  <button className="btn btn-ghost icon-btn" onClick={handleAddToWishlist}>
-                    <Heart size={20} />
+                  <button 
+                    className={`btn btn-ghost icon-btn ${isInWishlist(product.id) ? 'wishlist-active' : ''}`}
+                    onClick={handleAddToWishlist}
+                    title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <Heart size={20} fill={isInWishlist(product.id) ? 'currentColor' : 'none'} />
                   </button>
                   <button className="btn btn-ghost icon-btn" onClick={handleShare}>
                     <Share2 size={20} />
                   </button>
                 </div>
+                
+                {cartSuccess && (
+                  <div className="cart-success-message">
+                    <Check size={18} />
+                    <span>Product added to cart successfully!</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
