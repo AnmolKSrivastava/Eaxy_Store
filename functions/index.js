@@ -3,6 +3,13 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
+// Role constants matching frontend
+const ROLES = {
+  SUPERADMIN: 'super_admin',
+  ADMIN: 'admin',
+  ORDER_MANAGER: 'order_manager'
+};
+
 /**
  * Cloud Function to create admin user and send invitation email
  * Triggered via HTTP call from Admin Management interface
@@ -21,7 +28,10 @@ exports.sendAdminInvite = functions.https.onCall(async (data, context) => {
     
     // Check if caller is super admin
     const callerAdminDoc = await admin.firestore().collection('admin').doc(callerEmail).get();
-    if (!callerAdminDoc.exists || callerAdminDoc.data().role !== 'superadmin') {
+    const callerRole = callerAdminDoc.exists ? callerAdminDoc.data().role : null;
+    
+    // Accept both old and new role format for backward compatibility
+    if (!callerAdminDoc.exists || (callerRole !== ROLES.SUPERADMIN && callerRole !== 'superadmin')) {
       throw new functions.https.HttpsError(
         'permission-denied',
         'Only super admins can send admin invitations.'
@@ -34,7 +44,9 @@ exports.sendAdminInvite = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('invalid-argument', 'Email is required.');
     }
 
-    if (!role || !['admin', 'superadmin', 'order_manager'].includes(role)) {
+    // Accept both old and new role formats
+    const validRoles = [ROLES.ADMIN, ROLES.SUPERADMIN, ROLES.ORDER_MANAGER, 'admin', 'superadmin', 'order_manager'];
+    if (!role || !validRoles.includes(role)) {
       throw new functions.https.HttpsError('invalid-argument', 'Invalid role specified.');
     }
 
@@ -45,9 +57,12 @@ exports.sendAdminInvite = functions.https.onCall(async (data, context) => {
     }
 
     // Check super admin limit
-    if (role === 'superadmin') {
+    if (role === ROLES.SUPERADMIN || role === 'superadmin') {
       const allAdmins = await admin.firestore().collection('admin').get();
-      const superAdminCount = allAdmins.docs.filter(doc => doc.data().role === 'superadmin').length;
+      const superAdminCount = allAdmins.docs.filter(doc => {
+        const r = doc.data().role;
+        return r === ROLES.SUPERADMIN || r === 'superadmin';
+      }).length;
       if (superAdminCount >= 4) {
         throw new functions.https.HttpsError(
           'resource-exhausted',
@@ -156,8 +171,10 @@ exports.revokeAdminAccess = functions.https.onCall(async (data, context) => {
 
     const callerEmail = context.auth.token.email;
     const callerAdminDoc = await admin.firestore().collection('admin').doc(callerEmail).get();
+    const callerRole = callerAdminDoc.exists ? callerAdminDoc.data().role : null;
     
-    if (!callerAdminDoc.exists || callerAdminDoc.data().role !== 'superadmin') {
+    // Accept both old and new role format
+    if (!callerAdminDoc.exists || (callerRole !== ROLES.SUPERADMIN && callerRole !== 'superadmin')) {
       throw new functions.https.HttpsError('permission-denied', 'Only super admins can revoke admin access.');
     }
 

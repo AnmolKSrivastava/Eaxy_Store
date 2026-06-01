@@ -26,8 +26,8 @@ const db = getFirestore(app);
 // Firebase Storage
 const storage = getStorage(app);
 
-// Firebase Cloud Functions
-const functions = getFunctions(app);
+// Firebase Cloud Functions (explicitly set region)
+const functions = getFunctions(app, 'us-central1');
 
 // Google Auth Provider for user login
 const googleProvider = new GoogleAuthProvider();
