@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, ShoppingCart, Heart, Share2, Check, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
+import { ReviewSection } from '../components/shared';
 import { fetchProductById, fetchProductsByCategory } from '../firebase/productsService';
 import './ProductDetailPage.css';
 
@@ -180,12 +181,17 @@ function ProductDetailPage() {
                 )}
               </div>
 
-              <div className="product-rating-row">
-                <div className="rating-stars">
-                  <Star size={18} fill="var(--gold)" stroke="var(--gold)" />
-                  <span className="rating-value">{product.rating || 4.5}</span>
+              {product.rating && (
+                <div className="product-rating-row">
+                  <div className="rating-stars">
+                    <Star size={18} fill="var(--gold)" stroke="var(--gold)" />
+                    <span className="rating-value">{product.rating}</span>
+                    {product.reviewCount && (
+                      <span className="review-count">({product.reviewCount} reviews)</span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="product-pricing">
                 <div className="price-main">
@@ -270,6 +276,15 @@ function ProductDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Reviews Section */}
+          {product && (
+            <ReviewSection 
+              type="product" 
+              itemId={product.id} 
+              itemName={product.name} 
+            />
+          )}
 
           {/* Related Products */}
           {relatedProducts.length > 0 && (

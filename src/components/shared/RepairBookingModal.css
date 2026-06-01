@@ -1,0 +1,322 @@
+/* Repair Booking Modal Styles */
+
+.booking-modal {
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.booking-modal .modal-header {
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.booking-modal .modal-header h2 {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: var(--foreground);
+}
+
+.booking-modal .modal-header p {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* Service Summary */
+.service-summary {
+  background: linear-gradient(135deg, var(--primary) 0%, #0a5544 100%);
+  color: white;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.service-summary h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.summary-details {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.summary-details span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.95;
+}
+
+.summary-details .price {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* Booking Form */
+.booking-form {
+  padding: 32px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.form-section h4 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: var(--foreground);
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+
+.form-group label svg {
+  color: var(--primary);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  background: var(--background);
+  color: var(--foreground);
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 107, 83, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+  margin-top: 16px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  transition: all 0.2s ease;
+}
+
+.checkbox-label:hover {
+  border-color: var(--primary);
+  background: rgba(15, 107, 83, 0.05);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.checkbox-label span {
+  font-size: 15px;
+  color: var(--foreground);
+}
+
+/* Form Error */
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  margin-top: 32px;
+}
+
+.form-actions .btn {
+  min-width: 140px;
+}
+
+/* Success State */
+.booking-success {
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, #0a5544 100%);
+  color: white;
+  margin-bottom: 24px;
+}
+
+.booking-success h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  color: var(--foreground);
+}
+
+.booking-id {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.booking-id strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.success-message {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 32px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.success-details {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.success-details .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.success-details .detail-item:last-child {
+  border-bottom: none;
+}
+
+.success-details .label {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.success-details .value {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .booking-modal {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .booking-modal .modal-header,
+  .service-summary,
+  .booking-form {
+    padding: 24px 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+
+  .booking-success {
+    padding: 32px 20px;
+  }
+
+  .success-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .success-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-modal .modal-header h2 {
+    font-size: 24px;
+  }
+
+  .service-summary h3 {
+    font-size: 18px;
+  }
+
+  .summary-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-section h4 {
+    font-size: 16px;
+  }
+}

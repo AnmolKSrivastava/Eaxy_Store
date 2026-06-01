@@ -14,8 +14,13 @@ function TestimonialsSection() {
           {testimonials.map((testimonial, idx) => (
             <article key={testimonial.name} className="glass-card reveal" style={{ animationDelay: `${idx * 0.08}s` }}>
               <div className="stars">
-                {[0, 1, 2, 3, 4].map((star) => (
-                  <Star key={star} size={16} />
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star 
+                    key={star} 
+                    size={16} 
+                    fill={star <= testimonial.rating ? 'var(--gold)' : 'none'}
+                    stroke="var(--gold)"
+                  />
                 ))}
               </div>
               <p className="quote">&quot;{parseBrandText(testimonial.review)}&quot;</p>

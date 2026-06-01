@@ -5,23 +5,33 @@ import {
 } from 'firebase/firestore';
 
 export const ROLES = {
-  SUPERADMIN: 'superadmin',
+  SUPERADMIN: 'super_admin',
   ADMIN: 'admin',
-  VIEWER: 'viewer',
+  ORDER_MANAGER: 'order_manager',
 };
 
 // Permissions per role
 export const PERMISSIONS = {
+  super_admin: [
+    'dashboard', 'analytics', 'orders', 'product_orders', 'repair_requests',
+    'products', 'inventory', 'services', 'users', 'activity_logs',
+    'contact_enquiries', 'settings', 'admin_management', 'password_change',
+  ],
+  // Legacy role name support
   superadmin: [
-    'dashboard', 'analytics', 'orders', 'products', 'inventory',
-    'coupons', 'users', 'activity_logs', 'contact_enquiries',
-    'settings', 'admin_management', 'password_change',
+    'dashboard', 'analytics', 'orders', 'product_orders', 'repair_requests',
+    'products', 'inventory', 'services', 'users', 'activity_logs',
+    'contact_enquiries', 'settings', 'admin_management', 'password_change',
   ],
   admin: [
-    'dashboard', 'analytics', 'orders', 'products', 'inventory',
-    'users', 'contact_enquiries', 'password_change',
+    'dashboard', 'analytics', 'orders', 'product_orders', 'repair_requests',
+    'products', 'inventory', 'services', 'users', 'activity_logs',
+    'contact_enquiries', 'settings', 'password_change',
   ],
-  viewer: ['dashboard', 'analytics'],
+  order_manager: [
+    'dashboard', 'product_orders', 'products', 'inventory', 'users',
+    'password_change',
+  ],
 };
 
 /** Returns array of admin email strings */
@@ -50,11 +60,21 @@ export async function fetchAllAdmins() {
   return snapshot.docs.map(d => ({ email: d.id, ...d.data() }));
 }
 
-/** Add new admin. Throws if already exists. */
+/** Add new admin. Throws if already exists or super admin limit reached. */
 export async function addAdmin(email, role = 'admin', addedBy = '') {
   const ref = doc(db, 'admin', email);
   const existing = await getDoc(ref);
   if (existing.exists()) throw new Error('An admin with this email already exists.');
+  
+  // Check super admin limit (max 4)
+  if (role === ROLES.SUPERADMIN) {
+    const allAdmins = await fetchAllAdmins();
+    const superAdminCount = allAdmins.filter(a => a.role === ROLES.SUPERADMIN).length;
+    if (superAdminCount >= 4) {
+      throw new Error('Cannot add more than 4 super admins.');
+    }
+  }
+  
   await setDoc(ref, {
     role,
     addedBy,
@@ -67,16 +87,26 @@ export async function addAdmin(email, role = 'admin', addedBy = '') {
 export async function removeAdmin(email, requestingAdminEmail) {
   const target = await getAdminData(email);
   if (!target) throw new Error('Admin not found.');
-  if (target.role === ROLES.SUPERADMIN) throw new Error('Cannot remove a super admin.');
+  if (target.role === ROLES.SUPERADMIN) throw new Error('Super admins cannot be deleted.');
   if (email === requestingAdminEmail) throw new Error('You cannot remove yourself.');
   await deleteDoc(doc(db, 'admin', email));
 }
 
-/** Update an admin's role. Blocks modifying super admins. */
+/** Update an admin's role. Blocks modifying super admins and enforces super admin limit. */
 export async function updateAdminRole(email, newRole) {
   const target = await getAdminData(email);
   if (!target) throw new Error('Admin not found.');
-  if (target.role === ROLES.SUPERADMIN) throw new Error('Cannot modify a super admin\'s role.');
+  if (target.role === ROLES.SUPERADMIN) throw new Error('Super admins cannot have their role changed.');
+  
+  // Check super admin limit when promoting to super admin
+  if (newRole === ROLES.SUPERADMIN) {
+    const allAdmins = await fetchAllAdmins();
+    const superAdminCount = allAdmins.filter(a => a.role === ROLES.SUPERADMIN).length;
+    if (superAdminCount >= 4) {
+      throw new Error('Cannot promote to super admin. Maximum limit of 4 reached.');
+    }
+  }
+  
   await updateDoc(doc(db, 'admin', email), { role: newRole });
 }
 

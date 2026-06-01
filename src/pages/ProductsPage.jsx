@@ -1,14 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, Star, ShoppingCart } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, ShoppingCart, Heart } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
 import { sortOptions, priceRanges } from '../data/productsData';
 import { fetchAllProducts, fetchAllCategories } from '../firebase/productsService';
 import { iconMap } from '../components/home/iconMap';
+import { useCart } from '../contexts/CartContext';
+import { useWishlist } from '../contexts/WishlistContext';
 import './ProductsPage.css';
 
 function ProductsPage() {
   const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +22,8 @@ function ProductsPage() {
   const [sortBy, setSortBy] = useState('featured');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(null);
+  const [togglingWishlist, setTogglingWishlist] = useState(null);
 
   // Fetch products and categories from Firebase
   useEffect(() => {
@@ -107,6 +113,36 @@ function ProductsPage() {
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(price);
+  };
+
+  const handleAddToCart = async (e, product) => {
+    e.stopPropagation();
+    if (!product.inStock) return;
+    
+    try {
+      setAddingToCart(product.id);
+      await addToCart(product, 1);
+      // Could add a toast notification here
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add to cart. Please try again.');
+    } finally {
+      setAddingToCart(null);
+    }
+  };
+
+  const handleToggleWishlist = async (e, productId) => {
+    e.stopPropagation();
+    
+    try {
+      setTogglingWishlist(productId);
+      await toggleWishlist(productId);
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      alert('Failed to update wishlist. Please try again.');
+    } finally {
+      setTogglingWishlist(null);
+    }
   };
 
   return (
@@ -266,6 +302,18 @@ function ProductsPage() {
                       {!product.inStock && (
                         <span className="out-of-stock-badge">Out of Stock</span>
                       )}
+                      <button
+                        className={`wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
+                        onClick={(e) => handleToggleWishlist(e, product.id)}
+                        disabled={togglingWishlist === product.id}
+                        aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      >
+                        <Heart 
+                          size={20} 
+                          fill={isInWishlist(product.id) ? 'var(--gold)' : 'none'}
+                          stroke="var(--gold)"
+                        />
+                      </button>
                       <div className="product-image">
                         <img src={product.image} alt={product.name} />
                       </div>
@@ -276,30 +324,38 @@ function ProductsPage() {
                             <span className="refurbished-badge">Refurbished</span>
                           )}
                         </div>
-                        <div className="product-rating">
-                          <Star size={14} fill="var(--gold)" stroke="var(--gold)" />
-                          <span>{product.rating || 4.5}</span>
-                        </div>
+                        {product.rating && (
+                          <div className="product-rating">
+                            <Star size={14} fill="var(--gold)" stroke="var(--gold)" />
+                            <span>{product.rating}</span>
+                            {product.reviewCount && (
+                              <span className="review-count">({product.reviewCount})</span>
+                            )}
+                          </div>
+                        )}
                         <ul className="product-specs">
                           {Array.isArray(product.specs) && product.specs.slice(0, 3).map((spec, i) => (
                             <li key={i}>{spec}</li>
                           ))}
                         </ul>
-                        <div className="product-footer">
-                          <div className="product-pricing">
-                            <strong className="price">{formatPrice(product.price)}</strong>
-                            {product.originalPrice && (
-                              <span className="original-price">{formatPrice(product.originalPrice)}</span>
-                            )}
-                          </div>
-                          <button 
-                            className="btn btn-primary"
-                            disabled={!product.inStock}
-                          >
-                            <ShoppingCart size={16} />
-                            {product.inStock ? 'Add to Cart' : 'Unavailable'}
-                          </button>
+                        <div className="product-pricing">
+                          <strong className="price">{formatPrice(product.price)}</strong>
+                          {product.originalPrice && (
+                            <span className="original-price">{formatPrice(product.originalPrice)}</span>
+                          )}
                         </div>
+                        <button 
+                          className="btn btn-primary"
+                          onClick={(e) => handleAddToCart(e, product)}
+                          disabled={!product.inStock || addingToCart === product.id}
+                        >
+                          <ShoppingCart size={16} />
+                          {addingToCart === product.id 
+                            ? 'Adding...' 
+                            : product.inStock 
+                              ? 'Add to Cart' 
+                              : 'Unavailable'}
+                        </button>
                       </div>
                     </article>
                   ))}

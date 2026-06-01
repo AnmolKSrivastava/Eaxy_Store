@@ -6,7 +6,7 @@ export { default as ProductsManagement } from './ProductsManagement';
 export { default as CategoriesManagement } from './CategoriesManagement';
 export { default as DealsManagement } from './DealsManagement';
 export { default as RepairCatalog } from './RepairCatalog';
-export { default as TechniciansManagement } from './TechniciansManagement';
 export { default as CustomerManagement } from './CustomerManagement';
 export { default as CoverageManagement } from './CoverageManagement';
+export { default as CoverageAreasManagement } from './CoverageAreasManagement';
 export { default as ContentManagement } from './ContentManagement';

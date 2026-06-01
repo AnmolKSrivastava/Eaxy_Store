@@ -7,6 +7,8 @@ import RepairServicesPage from './pages/RepairServicesPage';
 import ContactPage from './pages/ContactPage';
 import WishlistPage from './pages/WishlistPage';
 import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrdersPage from './pages/OrdersPage';
 import AdminDashboardPage from './admin/AdminDashboardPage';
 import AdminLogin from './admin/pages/AdminLogin';
 import AdminForgotPassword from './admin/pages/AdminForgotPassword';
@@ -16,6 +18,8 @@ import ProtectedAdminRoute from './admin/components/ProtectedAdminRoute';
 import { Chatbot, ScrollToTop } from './components/shared';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdminProvider } from './contexts/AdminContext';
+import { CartProvider } from './contexts/CartContext';
+import { WishlistProvider } from './contexts/WishlistContext';
 
 function AppContent() {
   const location = useLocation();
@@ -32,6 +36,8 @@ function AppContent() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
 
         {/* Admin public auth routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -59,9 +65,13 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AdminProvider>
-          <AppContent />
-        </AdminProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <AdminProvider>
+              <AppContent />
+            </AdminProvider>
+          </WishlistProvider>
+        </CartProvider>
       </AuthProvider>
     </Router>
   );

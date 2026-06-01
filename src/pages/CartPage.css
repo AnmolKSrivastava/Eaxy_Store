@@ -190,6 +190,11 @@
   margin-top: 1.5rem;
 }
 
+/* Empty State Cart Icon */
+.empty-cart-icon {
+  color: var(--green) !important;
+}
+
 .continue-shopping {
   display: block;
   text-align: center;

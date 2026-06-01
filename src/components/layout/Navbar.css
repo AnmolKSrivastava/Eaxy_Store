@@ -72,6 +72,24 @@
   transform: translateY(-1px);
 }
 
+.btn-icon.wishlist-icon {
+  color: var(--gold);
+}
+
+.btn-icon.wishlist-icon:hover {
+  color: var(--gold);
+  background: rgba(212, 175, 55, 0.15);
+}
+
+.btn-icon.cart-icon {
+  color: var(--green);
+}
+
+.btn-icon.cart-icon:hover {
+  color: var(--green);
+  background: rgba(15, 107, 83, 0.15);
+}
+
 .cart-badge {
   position: absolute;
   top: -4px;

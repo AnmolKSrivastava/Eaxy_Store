@@ -1,16 +1,12 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
-import { allProducts } from '../data/productsData';
+import { useCart } from '../contexts/CartContext';
 import './CartPage.css';
 
 function CartPage() {
-  // Mock cart data - in a real app, this would come from state management or backend
-  const [cartItems, setCartItems] = useState([
-    { ...allProducts[0], quantity: 1 }, // MacBook Air M2
-    { ...allProducts[7], quantity: 2 }, // Samsung Galaxy S24
-    { ...allProducts[13], quantity: 1 }, // AirPods Pro 2
-  ]);
+  const navigate = useNavigate();
+  const { cartItems, loading, updateQuantity, removeItem, calculateTotals } = useCart();
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
@@ -20,21 +16,42 @@ function CartPage() {
     }).format(price);
   };
 
-  const updateQuantity = (productId, newQuantity) => {
+  const handleUpdateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
-    setCartItems(cartItems.map(item => 
-      item.id === productId ? { ...item, quantity: newQuantity } : item
-    ));
+    try {
+      await updateQuantity(productId, newQuantity);
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      alert('Failed to update quantity. Please try again.');
+    }
   };
 
-  const removeFromCart = (productId) => {
-    setCartItems(cartItems.filter(item => item.id !== productId));
+  const handleRemoveFromCart = async (productId) => {
+    try {
+      await removeItem(productId);
+    } catch (error) {
+      console.error('Error removing item:', error);
+      alert('Failed to remove item. Please try again.');
+    }
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = subtotal > 50000 ? 0 : 500;
-  const tax = subtotal * 0.18; // 18% GST
-  const total = subtotal + shipping + tax;
+  const { subtotal, shippingCharges, tax, totalAmount } = calculateTotals();
+
+  if (loading) {
+    return (
+      <div className="page">
+        <Navbar />
+        <section className="cart-page">
+          <div className="container">
+            <div style={{ padding: '3rem', textAlign: 'center' }}>
+              <p>Loading cart...</p>
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="page">
@@ -55,7 +72,7 @@ function CartPage() {
               <div className="cart-items">
                 {cartItems.map((item, idx) => (
                   <article 
-                    key={item.id} 
+                    key={item.productId} 
                     className="cart-item reveal"
                     style={{ animationDelay: `${idx * 0.08}s` }}
                   >
@@ -66,24 +83,29 @@ function CartPage() {
                     <div className="cart-item-details">
                       <h3>{item.name}</h3>
                       <p className="cart-item-specs">
-                        {item.specs.slice(0, 2).join(' • ')}
+                        {item.specs && item.specs.length > 0 ? item.specs.slice(0, 2).join(' • ') : 'Product details'}
                       </p>
                       <p className="cart-item-price">
                         {formatPrice(item.price)}
                       </p>
+                      {!item.inStock && (
+                        <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                          Out of stock
+                        </p>
+                      )}
                     </div>
                     
                     <div className="cart-item-actions">
                       <div className="quantity-control">
                         <button 
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                           aria-label="Decrease quantity"
                         >
                           <Minus size={16} />
                         </button>
                         <span>{item.quantity}</span>
                         <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
                           aria-label="Increase quantity"
                         >
                           <Plus size={16} />
@@ -96,7 +118,7 @@ function CartPage() {
                       
                       <button 
                         className="btn-remove"
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => handleRemoveFromCart(item.productId)}
                         aria-label="Remove from cart"
                       >
                         <Trash2 size={18} />
@@ -117,7 +139,7 @@ function CartPage() {
                 
                 <div className="summary-row">
                   <span>Shipping</span>
-                  <strong>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</strong>
+                  <strong>{shippingCharges === 0 ? 'FREE' : formatPrice(shippingCharges)}</strong>
                 </div>
                 
                 <div className="summary-row">
@@ -129,16 +151,19 @@ function CartPage() {
                 
                 <div className="summary-row total">
                   <span>Total</span>
-                  <strong>{formatPrice(total)}</strong>
+                  <strong>{formatPrice(totalAmount)}</strong>
                 </div>
                 
-                {shipping > 0 && (
+                {shippingCharges > 0 && (
                   <p className="shipping-notice">
                     Add {formatPrice(50000 - subtotal)} more for FREE shipping
                   </p>
                 )}
                 
-                <button className="btn btn-primary block">
+                <button 
+                  className="btn btn-primary block"
+                  onClick={() => navigate('/checkout')}
+                >
                   Proceed to Checkout
                   <ArrowRight size={18} />
                 </button>
@@ -150,7 +175,7 @@ function CartPage() {
             </div>
           ) : (
             <div className="empty-state reveal">
-              <ShoppingBag size={64} strokeWidth={1.5} />
+              <ShoppingBag size={64} strokeWidth={1.5} className="empty-cart-icon" />
               <h2>Your cart is empty</h2>
               <p>Add some amazing products to your cart and they'll show up here</p>
               <a href="/products" className="btn btn-primary">

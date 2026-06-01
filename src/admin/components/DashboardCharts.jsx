@@ -2,33 +2,12 @@ import React from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './DashboardCharts.css';
 
-function DashboardCharts() {
-  // Sales Trends Data (Products vs Services)
-  const salesTrendData = [
-    { month: 'Jan', products: 45000, services: 12000 },
-    { month: 'Feb', products: 52000, services: 15000 },
-    { month: 'Mar', products: 48000, services: 18000 },
-    { month: 'Apr', products: 61000, services: 22000 },
-    { month: 'May', products: 55000, services: 19000 },
-    { month: 'Jun', products: 67000, services: 25000 },
-  ];
-
-  // Order Status Breakdown Data
-  const orderStatusData = [
-    { status: 'Pending', count: 12, color: '#f59e0b' },
-    { status: 'Processing', count: 18, color: '#3b82f6' },
-    { status: 'Out for Delivery', count: 8, color: '#8b5cf6' },
-    { status: 'Delivered', count: 142, color: '#10b981' },
-  ];
-
-  // Revenue by Category Data
-  const revenueByCategoryData = [
-    { category: 'Laptops', revenue: 89000 },
-    { category: 'Smartphones', revenue: 124000 },
-    { category: 'Accessories', revenue: 45000 },
-    { category: 'Refurbished', revenue: 32000 },
-    { category: 'Repairs', revenue: 56000 },
-  ];
+function DashboardCharts({ data }) {
+  const {
+    salesTrendData = [],
+    orderStatusData = [],
+    revenueByCategoryData = []
+  } = data || {};
 
   const COLORS = ['#0f6b53', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444'];
 

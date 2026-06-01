@@ -6,12 +6,11 @@ import OrderManagement from './components/OrderManagement';
 import ProductsManagement from './components/ProductsManagement';
 import CategoriesManagement from './components/CategoriesManagement';
 import DealsManagement from './components/DealsManagement';
-import TechniciansManagement from './components/TechniciansManagement';
 import { RepairServicesManagement } from './components/RepairServicesManagement';
 import { ServiceCategoriesManagement } from './components/ServiceCategoriesManagement';
 import CustomerManagement from './components/CustomerManagement';
 import CoverageManagement from './components/CoverageManagement';
-import ContentManagement from './components/ContentManagement';
+import CoverageAreasManagement from './components/CoverageAreasManagement';
 import AdminManagement from './components/AdminManagement';
 import AdminPasswordChange from './components/AdminPasswordChange';
 import ActivityLogs from './components/ActivityLogs';
@@ -24,6 +23,7 @@ function AdminDashboardPage() {
   const [orderTab, setOrderTab] = useState('products');
   const [productView, setProductView] = useState('inventory');
   const [serviceView, setServiceView] = useState('services');
+  const [logisticsView, setLogisticsView] = useState('map');
   const [settingsView, setSettingsView] = useState('password');
   const { hasPermission } = useAdmin();
 
@@ -38,11 +38,17 @@ function AdminDashboardPage() {
       case 'dashboard':
         return hasPermission('dashboard') ? <DashboardOverview /> : <Denied />;
       case 'orders':
-        return hasPermission('orders')
-          ? <OrderManagement activeTab={orderTab} setActiveTab={setOrderTab} />
-          : <Denied />;
+        // Order managers can only see product orders, technicians can only see repair requests
+        if (hasPermission('product_orders') && !hasPermission('repair_requests')) {
+          return <OrderManagement activeTab="products" setActiveTab={setOrderTab} />;
+        } else if (hasPermission('repair_requests') && !hasPermission('product_orders')) {
+          return <OrderManagement activeTab="repairs" setActiveTab={setOrderTab} />;
+        } else if (hasPermission('orders') || (hasPermission('product_orders') && hasPermission('repair_requests'))) {
+          return <OrderManagement activeTab={orderTab} setActiveTab={setOrderTab} />;
+        }
+        return <Denied />;
       case 'products':
-        if (!hasPermission('products')) return <Denied />;
+        if (!hasPermission('products') && !hasPermission('inventory')) return <Denied />;
         switch (productView) {
           case 'inventory':   return <ProductsManagement />;
           case 'categories':  return <CategoriesManagement />;
@@ -50,23 +56,25 @@ function AdminDashboardPage() {
           default:            return <ProductsManagement />;
         }
       case 'services':
-        if (!hasPermission('products')) return <Denied />;
+        if (!hasPermission('services')) return <Denied />;
         switch (serviceView) {
           case 'services':    return <RepairServicesManagement />;
           case 'categories':  return <ServiceCategoriesManagement />;
-          case 'technicians': return <TechniciansManagement />;
           default:            return <RepairServicesManagement />;
         }
       case 'customers':
         return hasPermission('users') ? <CustomerManagement /> : <Denied />;
       case 'logistics':
-        return hasPermission('products') ? <CoverageManagement /> : <Denied />;
-      case 'content':
-        return hasPermission('products') ? <ContentManagement /> : <Denied />;
+        if (!hasPermission('products') && !hasPermission('services')) return <Denied />;
+        switch (logisticsView) {
+          case 'map':     return <CoverageManagement />;
+          case 'areas':   return <CoverageAreasManagement />;
+          default:        return <CoverageManagement />;
+        }
       case 'activity_logs':
         return hasPermission('activity_logs') ? <ActivityLogs /> : <Denied />;
       case 'settings':
-        if (!hasPermission('settings')) return <Denied />;
+        if (!hasPermission('settings') && !hasPermission('password_change')) return <Denied />;
         return (
           <div style={{ padding: '1.5rem' }}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '1.5rem' }}>Settings</h2>
@@ -123,6 +131,8 @@ function AdminDashboardPage() {
         productView={productView}
         setServiceView={setServiceView}
         serviceView={serviceView}
+        setLogisticsView={setLogisticsView}
+        logisticsView={logisticsView}
       />
       <div className="admin-main">
         <AdminTopBar />

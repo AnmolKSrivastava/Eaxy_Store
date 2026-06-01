@@ -6,12 +6,16 @@ import { navLinks } from '../../data';
 import BrandName from '../shared/BrandName';
 import UserLoginModal from '../auth/UserLoginModal';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import './Navbar.css';
 
 function Navbar() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const { currentUser, logout } = useAuth();
+  const { itemCount: cartCount } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -69,12 +73,13 @@ function Navbar() {
             })}
           </div>
           <div className="nav-actions">
-            <Link to="/wishlist" className="btn-icon" aria-label="Wishlist">
+            <Link to="/wishlist" className="btn-icon wishlist-icon" aria-label="Wishlist">
               <Heart size={20} />
+              {wishlistCount > 0 && <span className="cart-badge">{wishlistCount}</span>}
             </Link>
-            <Link to="/cart" className="btn-icon" aria-label="Cart">
+            <Link to="/cart" className="btn-icon cart-icon" aria-label="Cart">
               <ShoppingCart size={20} />
-              <span className="cart-badge">0</span>
+              {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </Link>
 
             {currentUser ? (

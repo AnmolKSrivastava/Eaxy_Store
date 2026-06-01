@@ -1,23 +1,136 @@
-import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Clock, Eye, X, Check, Truck, Package, Wrench, UserPlus, AlertCircle } from 'lucide-react';
-import { mockOrders, statusColors, paymentStatusColors } from '../data/mockOrders';
-import { mockRepairRequests, repairStatusColors, priorityColors, availableTechnicians } from '../data/mockRepairRequests';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, MapPin, Clock, Eye, X, Check, Truck, Package, Wrench, AlertCircle } from 'lucide-react';
+import { statusColors, paymentStatusColors } from '../data/mockOrders';
+import { repairStatusColors, priorityColors } from '../data/mockRepairRequests';
+import { getAllOrders, updateOrderStatus as updateOrderStatusFirebase } from '../../firebase/orderService';
+import { getAllRepairBookings, updateRepairBookingStatus } from '../../firebase/repairBookingService';
 import './OrderManagement.css';
 
 function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetActiveTab }) {
   const [activeTab, setActiveTab] = useState(initialActiveTab || 'products'); // 'products' or 'repairs'
-  const [orders, setOrders] = useState(mockOrders);
-  const [filteredOrders, setFilteredOrders] = useState(mockOrders);
-  const [repairRequests, setRepairRequests] = useState(mockRepairRequests);
-  const [filteredRepairs, setFilteredRepairs] = useState(mockRepairRequests);
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [repairRequests, setRepairRequests] = useState([]);
+  const [filteredRepairs, setFilteredRepairs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [areaFilter, setAreaFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedRepair, setSelectedRepair] = useState(null);
-  const [showAssignTech, setShowAssignTech] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+
+  const formatAddress = (address) => {
+    if (!address) return 'N/A';
+    const parts = [
+      address.addressLine1,
+      address.addressLine2,
+      address.landmark,
+      address.area,
+      address.city || 'Pune',
+      address.pincode
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
+
+  const loadOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log('OrderManagement: Loading orders from Firebase...');
+      const firebaseOrders = await getAllOrders();
+      console.log('OrderManagement: Fetched orders:', firebaseOrders.length, 'orders');
+      // Transform Firebase orders to match admin panel format
+      const transformedOrders = firebaseOrders.map(order => ({
+        id: order.orderId || order.id,
+        customer: {
+          name: order.customer?.name || 'N/A',
+          email: order.customer?.email || 'N/A',
+          phone: order.customer?.phone || 'N/A',
+          address: formatAddress(order.deliveryAddress)
+        },
+        items: order.items || [],
+        total: order.totalAmount || 0,
+        status: order.status || 'pending',
+        paymentStatus: order.paymentStatus || 'pending',
+        deliveryArea: order.deliveryAddress?.area || 'N/A',
+        orderDate: order.orderDate?.seconds 
+          ? new Date(order.orderDate.seconds * 1000) 
+          : new Date(order.orderDate),
+        deliveryDeadline: order.orderDeadline 
+          ? new Date(order.orderDeadline)
+          : null,
+        estimatedDelivery: order.orderDeadline 
+          ? new Date(order.orderDeadline)
+          : null,
+        deliveredAt: order.deliveredAt?.seconds 
+          ? new Date(order.deliveredAt.seconds * 1000)
+          : null,
+        notes: order.notes || ''
+      }));
+      setOrders(transformedOrders);
+      setFilteredOrders(transformedOrders);
+      console.log('OrderManagement: Orders loaded successfully');
+    } catch (error) {
+      console.error('Error loading orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadRepairBookings = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log('OrderManagement: Loading repair bookings from Firebase...');
+      const firebaseBookings = await getAllRepairBookings();
+      console.log('OrderManagement: Fetched repair bookings:', firebaseBookings.length, 'bookings');
+      // Transform Firebase bookings to match admin panel format
+      const transformedBookings = firebaseBookings.map(booking => ({
+        id: booking.bookingId || booking.id,
+        customer: {
+          name: booking.customerName || 'N/A',
+          email: booking.email || 'N/A',
+          phone: booking.phone || 'N/A',
+          address: booking.address || 'N/A'
+        },
+        device: booking.deviceDetails || 'N/A',
+        issue: booking.serviceName || 'N/A',
+        description: booking.issueDescription || 'No description provided',
+        serviceName: booking.serviceName || 'N/A',
+        servicePrice: booking.servicePrice || 0,
+        estimatedCost: booking.servicePrice || 0,
+        status: booking.status || 'pending',
+        priority: booking.priority || 'medium',
+        requestDate: booking.createdAt?.seconds
+          ? new Date(booking.createdAt.seconds * 1000)
+          : new Date(booking.createdAt || Date.now()),
+        receivedAt: booking.createdAt?.seconds 
+          ? new Date(booking.createdAt.seconds * 1000) 
+          : new Date(booking.createdAt || Date.now()),
+        estimatedCompletion: booking.preferredDate 
+          ? new Date(booking.preferredDate)
+          : null,
+        completedAt: booking.completedAt?.seconds 
+          ? new Date(booking.completedAt.seconds * 1000)
+          : null,
+        pickupRequired: booking.pickupRequired || false,
+        serviceHistory: booking.serviceHistory || []
+      }));
+      setRepairRequests(transformedBookings);
+      setFilteredRepairs(transformedBookings);
+      console.log('OrderManagement: Repair bookings loaded successfully');
+    } catch (error) {
+      console.error('Error loading repair bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load real orders and repair bookings from Firebase
+  useEffect(() => {
+    loadOrders();
+    loadRepairBookings();
+  }, [loadOrders, loadRepairBookings]);
 
   // Update current time every minute for countdown
   useEffect(() => {
@@ -81,45 +194,21 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
     setFilteredRepairs(filtered);
   }, [searchTerm, statusFilter, priorityFilter, repairRequests]);
 
-  const updateRepairStatus = (repairId, newStatus) => {
-    setRepairRequests(prevRepairs =>
-      prevRepairs.map(repair =>
-        repair.id === repairId
-          ? { 
-              ...repair, 
-              status: newStatus,
-              ...(newStatus === 'completed' && { completedAt: new Date() }),
-              serviceHistory: [
-                ...repair.serviceHistory,
-                { date: new Date(), action: `Status updated to ${repairStatusColors[newStatus].text}`, by: 'Admin' }
-              ]
-            }
-          : repair
-      )
-    );
-    if (selectedRepair && selectedRepair.id === repairId) {
-      const updated = repairRequests.find(r => r.id === repairId);
-      setSelectedRepair({ ...updated, status: newStatus });
+  const updateRepairStatus = async (repairId, newStatus) => {
+    try {
+      await updateRepairBookingStatus(repairId, newStatus, `Status updated to ${newStatus}`);
+      // Reload repair bookings to get updated data
+      await loadRepairBookings();
+      if (selectedRepair && selectedRepair.id === repairId) {
+        const updated = repairRequests.find(r => r.id === repairId);
+        if (updated) {
+          setSelectedRepair({ ...updated, status: newStatus });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating repair status:', error);
+      alert('Failed to update repair status');
     }
-  };
-
-  const assignTechnician = (repairId, technicianName) => {
-    setRepairRequests(prevRepairs =>
-      prevRepairs.map(repair =>
-        repair.id === repairId
-          ? { 
-              ...repair, 
-              technician: technicianName,
-              status: repair.status === 'received' ? 'diagnosed' : repair.status,
-              serviceHistory: [
-                ...repair.serviceHistory,
-                { date: new Date(), action: `Assigned to ${technicianName}`, by: 'Admin' }
-              ]
-            }
-          : repair
-      )
-    );
-    setShowAssignTech(null);
   };
 
   const getTimeRemaining = (deadline) => {
@@ -133,16 +222,21 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
     return { hours, minutes, isOverdue: false, isUrgent };
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.id === orderId
-          ? { ...order, status: newStatus, ...(newStatus === 'delivered' && { deliveredAt: new Date() }) }
-          : order
-      )
-    );
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: newStatus });
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await updateOrderStatusFirebase(orderId, newStatus, 'admin', `Status updated to ${newStatus}`);
+      // Reload orders to get updated data
+      await loadOrders();
+      // Update selected order if it's open
+      if (selectedOrder && selectedOrder.id === orderId) {
+        const updated = orders.find(o => o.id === orderId);
+        if (updated) {
+          setSelectedOrder({ ...updated, status: newStatus });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Failed to update order status');
     }
   };
 
@@ -277,6 +371,17 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
       {/* Product Orders Table */}
       {activeTab === 'products' && (
       <div className="orders-table-container">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)' }}>
+            <Package size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+            <p>Loading orders...</p>
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)' }}>
+            <Package size={48} style={{ marginBottom: '16px', opacity: 0.3 }} />
+            <p>No orders found</p>
+          </div>
+        ) : (
         <table className="orders-table">
           <thead>
             <tr>
@@ -372,6 +477,7 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
             })}
           </tbody>
         </table>
+        )}
       </div>
       )}
 
@@ -387,7 +493,6 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
               <th>Issue</th>
               <th>Priority</th>
               <th>Status</th>
-              <th>Technician</th>
               <th>Est. Cost</th>
               <th>Actions</th>
             </tr>
@@ -410,27 +515,20 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
                   <td>
                     <span
                       className="status-badge"
-                      style={{ background: `${priorityColors[repair.priority].bg}20`, color: priorityColors[repair.priority].bg }}
+                      style={{ background: `${(priorityColors[repair.priority] || priorityColors.default).bg}20`, color: (priorityColors[repair.priority] || priorityColors.default).bg }}
                     >
-                      {priorityColors[repair.priority].text}
+                      {(priorityColors[repair.priority] || priorityColors.default).text}
                     </span>
                   </td>
                   <td>
                     <span
                       className="status-badge"
-                      style={{ background: `${repairStatusColors[repair.status].bg}20`, color: repairStatusColors[repair.status].bg }}
+                      style={{ background: `${(repairStatusColors[repair.status] || repairStatusColors.pending).bg}20`, color: (repairStatusColors[repair.status] || repairStatusColors.pending).bg }}
                     >
-                      {repairStatusColors[repair.status].text}
+                      {(repairStatusColors[repair.status] || repairStatusColors.pending).text}
                     </span>
                   </td>
-                  <td>
-                    {repair.technician ? (
-                      <span className="tech-name">{repair.technician}</span>
-                    ) : (
-                      <span className="no-tech">Unassigned</span>
-                    )}
-                  </td>
-                  <td className="amount">₹{repair.estimatedCost.toLocaleString()}</td>
+                  <td className="amount">₹{(repair.estimatedCost || repair.servicePrice || 0).toLocaleString()}</td>
                   <td>
                     <div className="action-buttons">
                       <button
@@ -440,15 +538,6 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
                       >
                         <Eye size={16} />
                       </button>
-                      {!repair.technician && (
-                        <button
-                          className="action-btn assign"
-                          onClick={() => setShowAssignTech(repair.id)}
-                          title="Assign Technician"
-                        >
-                          <UserPlus size={16} />
-                        </button>
-                      )}
                       {getRepairStatusActions(repair.status).map((action, idx) => {
                         const ActionIcon = action.icon;
                         return (
@@ -470,38 +559,6 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
           </tbody>
         </table>
       </div>
-      )}
-
-      {/* Assign Technician Dropdown */}
-      {showAssignTech && (
-        <div className="modal-overlay" onClick={() => setShowAssignTech(null)}>
-          <div className="tech-assign-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Assign Technician</h3>
-            <div className="tech-list">
-              {availableTechnicians.map(tech => (
-                <button
-                  key={tech.id}
-                  className={`tech-item ${!tech.available ? 'unavailable' : ''}`}
-                  onClick={() => tech.available && assignTechnician(showAssignTech, tech.name)}
-                  disabled={!tech.available}
-                >
-                  <div>
-                    <strong>{tech.name}</strong>
-                    <span className="tech-specialty">{tech.specialty}</span>
-                  </div>
-                  {tech.available ? (
-                    <span className="tech-status available">Available</span>
-                  ) : (
-                    <span className="tech-status busy">Busy</span>
-                  )}
-                </button>
-              ))}
-            </div>
-            <button className="modal-btn secondary" onClick={() => setShowAssignTech(null)}>
-              Cancel
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Order Details Modal */}
@@ -638,27 +695,27 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
                     <span className="info-label">Status:</span>
                     <span
                       className="status-badge"
-                      style={{ background: `${repairStatusColors[selectedRepair.status].bg}20`, color: repairStatusColors[selectedRepair.status].bg }}
+                      style={{ background: `${(repairStatusColors[selectedRepair.status] || repairStatusColors.pending).bg}20`, color: (repairStatusColors[selectedRepair.status] || repairStatusColors.pending).bg }}
                     >
-                      {repairStatusColors[selectedRepair.status].text}
+                      {(repairStatusColors[selectedRepair.status] || repairStatusColors.pending).text}
                     </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Priority:</span>
                     <span
                       className="status-badge"
-                      style={{ background: `${priorityColors[selectedRepair.priority].bg}20`, color: priorityColors[selectedRepair.priority].bg }}
+                      style={{ background: `${(priorityColors[selectedRepair.priority] || priorityColors.default).bg}20`, color: (priorityColors[selectedRepair.priority] || priorityColors.default).bg }}
                     >
-                      {priorityColors[selectedRepair.priority].text}
+                      {(priorityColors[selectedRepair.priority] || priorityColors.default).text}
                     </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Request Date:</span>
-                    <span className="info-value">{selectedRepair.requestDate.toLocaleString()}</span>
+                    <span className="info-value">{selectedRepair.requestDate?.toLocaleString() || 'N/A'}</span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Est. Completion:</span>
-                    <span className="info-value">{selectedRepair.estimatedCompletion.toLocaleString()}</span>
+                    <span className="info-value">{selectedRepair.estimatedCompletion?.toLocaleString() || 'Not scheduled'}</span>
                   </div>
                 </div>
 
@@ -697,17 +754,13 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
                   <span className="info-label">Description:</span>
                   <span className="info-value">{selectedRepair.description}</span>
                 </div>
-                <div className="info-row">
-                  <span className="info-label">Technician:</span>
-                  <span className="info-value">{selectedRepair.technician || 'Unassigned'}</span>
-                </div>
               </div>
 
               <div className="info-section">
                 <h3>Cost & Warranty</h3>
                 <div className="info-row">
                   <span className="info-label">Estimated Cost:</span>
-                  <span className="info-value">₹{selectedRepair.estimatedCost.toLocaleString()}</span>
+                  <span className="info-value">₹{(selectedRepair.estimatedCost || selectedRepair.servicePrice || 0).toLocaleString()}</span>
                 </div>
                 {selectedRepair.actualCost && (
                   <div className="info-row">
@@ -745,18 +798,6 @@ function OrderManagement({ activeTab: initialActiveTab, setActiveTab: parentSetA
             </div>
 
             <div className="modal-footer">
-              {!selectedRepair.technician && (
-                <button
-                  className="modal-btn primary"
-                  onClick={() => {
-                    setShowAssignTech(selectedRepair.id);
-                    setSelectedRepair(null);
-                  }}
-                >
-                  <UserPlus size={18} />
-                  Assign Technician
-                </button>
-              )}
               {getRepairStatusActions(selectedRepair.status).map((action, idx) => {
                 const ActionIcon = action.icon;
                 return (

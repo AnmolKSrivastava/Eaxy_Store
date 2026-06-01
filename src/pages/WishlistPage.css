@@ -39,9 +39,9 @@
 }
 
 .wishlist-card:hover {
-  border-color: var(--green);
+  border-color: var(--gold);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(15, 107, 83, 0.25);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.25);
 }
 
 .remove-btn {
@@ -108,7 +108,7 @@
 
 .wishlist-pricing .price {
   font-size: 1.4rem;
-  color: var(--green);
+  color: var(--gold);
   margin: 0;
 }
 
@@ -133,6 +133,10 @@
 .empty-state svg {
   color: var(--muted);
   margin-bottom: 1.5rem;
+}
+
+.empty-state svg.empty-icon {
+  color: var(--gold);
 }
 
 .empty-state h2 {

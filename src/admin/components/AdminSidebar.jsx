@@ -6,23 +6,47 @@ import {
   Wrench, 
   Users, 
   MapPin, 
-  FileText, 
   BarChart3, 
   Settings 
 } from 'lucide-react';
+import { useAdmin } from '../../contexts/AdminContext';
 
-function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProductView, setServiceView, orderTab = 'products', productView = 'inventory', serviceView = 'catalog' }) {
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'orders', label: 'Orders', icon: ShoppingCart, submenu: ['Product Orders', 'Repair Requests'] },
-    { id: 'products', label: 'Products', icon: Package, submenu: ['Inventory', 'Categories', 'Deals'] },
-    { id: 'services', label: 'Services', icon: Wrench, submenu: ['Repair Services', 'Service Categories', 'Technicians'] },
-    { id: 'customers', label: 'Customers', icon: Users },
-    { id: 'logistics', label: 'Coverage & Logistics', icon: MapPin },
-    { id: 'content', label: 'Content', icon: FileText },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
+function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProductView, setServiceView, setLogisticsView, orderTab = 'products', productView = 'inventory', serviceView = 'catalog', logisticsView = 'map' }) {
+  const { hasPermission, isOrderManager } = useAdmin();
+  
+  // Define menu items with permission requirements
+  const allMenuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'dashboard' },
+    { 
+      id: 'orders', 
+      label: 'Orders', 
+      icon: ShoppingCart, 
+      submenu: ['Product Orders', 'Repair Requests'],
+      permission: ['orders', 'product_orders', 'repair_requests'], // Show if has any of these
+      customSubmenu: true // Handle submenu visibility based on specific permissions
+    },
+    { id: 'products', label: 'Products', icon: Package, submenu: ['Inventory', 'Categories', 'Deals'], permission: ['products', 'inventory'] },
+    { id: 'services', label: 'Services', icon: Wrench, submenu: ['Repair Services', 'Service Categories'], permission: 'services' },
+    { id: 'customers', label: 'Customers', icon: Users, permission: 'users' },
+    { id: 'logistics', label: 'Coverage & Logistics', icon: MapPin, submenu: ['Coverage Map', 'Coverage Areas'], permission: ['products', 'services'] },
+    { id: 'reports', label: 'Reports', icon: BarChart3, permission: 'analytics' },
+    { id: 'settings', label: 'Settings', icon: Settings, permission: ['settings', 'password_change'] },
   ];
+
+  // Filter menu items based on permissions
+  const menuItems = allMenuItems.filter(item => {
+    if (!item.permission) return true;
+    if (Array.isArray(item.permission)) {
+      return item.permission.some(p => hasPermission(p));
+    }
+    return hasPermission(item.permission);
+  });
+
+  // Filter submenu for orders based on role
+  const getOrdersSubmenu = () => {
+    if (isOrderManager()) return ['Product Orders'];
+    return ['Product Orders', 'Repair Requests'];
+  };
 
   const getSubmenuActiveIndex = (itemId) => {
     if (itemId === 'orders') {
@@ -31,8 +55,11 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
       const viewMap = ['inventory', 'categories', 'deals'];
       return viewMap.indexOf(productView);
     } else if (itemId === 'services') {
-      const viewMap = ['services', 'categories', 'technicians'];
+      const viewMap = ['services', 'categories'];
       return viewMap.indexOf(serviceView);
+    } else if (itemId === 'logistics') {
+      const viewMap = ['map', 'areas'];
+      return viewMap.indexOf(logisticsView);
     }
     return -1;
   };
@@ -42,6 +69,8 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
       <div className="admin-sidebar-menu">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const displaySubmenu = item.customSubmenu && item.id === 'orders' ? getOrdersSubmenu() : item.submenu;
+          
           return (
             <div key={item.id}>
               <button
@@ -51,9 +80,9 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
                 <Icon size={20} />
                 <span>{item.label}</span>
               </button>
-              {item.submenu && activeSection === item.id && (
+              {displaySubmenu && activeSection === item.id && (
                 <div className="admin-submenu">
-                  {item.submenu.map((sub, idx) => (
+                  {displaySubmenu.map((sub, idx) => (
                     <button 
                       key={idx} 
                       className={`admin-submenu-item ${getSubmenuActiveIndex(item.id) === idx ? 'active' : ''}`}
@@ -67,8 +96,12 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
                           setProductView(viewMap[idx]);
                         } else if (item.id === 'services') {
                           // Map submenu items to service views
-                          const viewMap = ['services', 'categories', 'technicians'];
+                          const viewMap = ['services', 'categories'];
                           setServiceView(viewMap[idx]);
+                        } else if (item.id === 'logistics') {
+                          // Map submenu items to logistics views
+                          const viewMap = ['map', 'areas'];
+                          setLogisticsView(viewMap[idx]);
                         }
                       }}
                     >

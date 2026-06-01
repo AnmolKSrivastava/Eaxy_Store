@@ -165,23 +165,22 @@ export const mockRepairRequests = [
 ];
 
 export const repairStatusColors = {
+  pending: { bg: '#f59e0b', text: 'Pending' },
+  confirmed: { bg: '#3b82f6', text: 'Confirmed' },
+  'in-progress': { bg: '#8b5cf6', text: 'In Progress' },
+  completed: { bg: '#10b981', text: 'Completed' },
+  cancelled: { bg: '#ef4444', text: 'Cancelled' },
+  // Legacy statuses
   received: { bg: '#f59e0b', text: 'Received' },
   diagnosed: { bg: '#3b82f6', text: 'Diagnosed' },
-  repairing: { bg: '#8b5cf6', text: 'Repairing' },
-  completed: { bg: '#10b981', text: 'Completed' },
-  cancelled: { bg: '#ef4444', text: 'Cancelled' }
+  repairing: { bg: '#8b5cf6', text: 'Repairing' }
 };
 
 export const priorityColors = {
   low: { bg: '#6b7280', text: 'Low' },
   medium: { bg: '#f59e0b', text: 'Medium' },
-  high: { bg: '#ef4444', text: 'High' }
+  high: { bg: '#ef4444', text: 'High' },
+  default: { bg: '#6b7280', text: 'Normal' }
 };
 
-export const availableTechnicians = [
-  { id: 1, name: 'Rahul Deshmukh', specialty: 'Laptop Repairs', available: true },
-  { id: 2, name: 'Priya Joshi', specialty: 'Mobile Repairs', available: false },
-  { id: 3, name: 'Amit Pawar', specialty: 'Mobile & Tablet Repairs', available: true },
-  { id: 4, name: 'Kiran Shah', specialty: 'Desktop & Hardware', available: true },
-  { id: 5, name: 'Sneha Kulkarni', specialty: 'Data Recovery', available: true }
-];
+export const availableTechnicians = [];

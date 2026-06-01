@@ -1,16 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, ShoppingCart, X } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
-import { allProducts } from '../data/productsData';
+import { useWishlist } from '../contexts/WishlistContext';
+import { useCart } from '../contexts/CartContext';
+import { fetchAllProducts } from '../firebase/productsService';
 import './WishlistPage.css';
 
 function WishlistPage() {
-  // Mock wishlist data - in a real app, this would come from state management or backend
-  const [wishlistItems, setWishlistItems] = useState([
-    allProducts[0], // MacBook Air M2
-    allProducts[6], // iPhone 15 Pro
-    allProducts[12], // Sony WH-1000XM5
-  ]);
+  const { wishlistItems, loading, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
+  // Load products from Firebase
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const allProducts = await fetchAllProducts();
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    
+    loadProducts();
+  }, []);
+
+  // Get full product details for wishlist items
+  const wishlistWithDetails = wishlistItems
+    .map(item => {
+      const product = products.find(p => p.id === item.productId);
+      if (product) {
+        return {
+          ...product,
+          addedAt: item.addedAt
+        };
+      }
+      return null;
+    })
+    .filter(item => item !== null);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
@@ -20,15 +50,42 @@ function WishlistPage() {
     }).format(price);
   };
 
-  const removeFromWishlist = (productId) => {
-    setWishlistItems(wishlistItems.filter(item => item.id !== productId));
+  const handleRemoveFromWishlist = async (productId) => {
+    try {
+      await removeFromWishlist(productId);
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      alert('Failed to remove from wishlist. Please try again.');
+    }
   };
 
-  const moveToCart = (productId) => {
-    // In a real app, this would add to cart and remove from wishlist
-    console.log('Moving to cart:', productId);
-    removeFromWishlist(productId);
+  const handleMoveToCart = async (product) => {
+    try {
+      // Add to cart
+      await addToCart(product, 1);
+      // Remove from wishlist
+      await removeFromWishlist(product.id);
+    } catch (error) {
+      console.error('Error moving to cart:', error);
+      alert('Failed to move to cart. Please try again.');
+    }
   };
+
+  if (loading || loadingProducts) {
+    return (
+      <div className="page">
+        <Navbar />
+        <section className="wishlist-page">
+          <div className="container">
+            <div style={{ padding: '3rem', textAlign: 'center' }}>
+              <p>Loading wishlist...</p>
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="page">
@@ -39,13 +96,13 @@ function WishlistPage() {
           <div className="page-header reveal">
             <div>
               <h1>My Wishlist</h1>
-              <p>{wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved for later</p>
+              <p>{wishlistWithDetails.length} {wishlistWithDetails.length === 1 ? 'item' : 'items'} saved for later</p>
             </div>
           </div>
 
-          {wishlistItems.length > 0 ? (
+          {wishlistWithDetails.length > 0 ? (
             <div className="wishlist-grid">
-              {wishlistItems.map((item, idx) => (
+              {wishlistWithDetails.map((item, idx) => (
                 <article 
                   key={item.id} 
                   className="wishlist-card reveal"
@@ -53,7 +110,7 @@ function WishlistPage() {
                 >
                   <button 
                     className="remove-btn"
-                    onClick={() => removeFromWishlist(item.id)}
+                    onClick={() => handleRemoveFromWishlist(item.id)}
                     aria-label="Remove from wishlist"
                   >
                     <X size={18} />
@@ -78,15 +135,19 @@ function WishlistPage() {
                     </div>
                     
                     <ul className="product-specs">
-                      {item.specs.slice(0, 3).map((spec, i) => (
-                        <li key={i}>{spec}</li>
-                      ))}
+                      {item.specs && item.specs.length > 0 ? (
+                        item.specs.slice(0, 3).map((spec, i) => (
+                          <li key={i}>{spec}</li>
+                        ))
+                      ) : (
+                        <li>Product details</li>
+                      )}
                     </ul>
                     
                     <div className="wishlist-actions">
                       <button 
                         className="btn btn-primary block"
-                        onClick={() => moveToCart(item.id)}
+                        onClick={() => handleMoveToCart(item)}
                         disabled={!item.inStock}
                       >
                         <ShoppingCart size={16} />
@@ -99,7 +160,7 @@ function WishlistPage() {
             </div>
           ) : (
             <div className="empty-state reveal">
-              <Heart size={64} strokeWidth={1.5} />
+              <Heart size={64} strokeWidth={1.5} className="empty-icon" />
               <h2>Your wishlist is empty</h2>
               <p>Save items you love for later by clicking the heart icon on any product</p>
               <a href="/products" className="btn btn-primary">

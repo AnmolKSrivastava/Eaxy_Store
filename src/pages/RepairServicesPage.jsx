@@ -3,6 +3,7 @@ import { Search, SlidersHorizontal, Star, Clock, Shield } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
 import { fetchAllRepairServices, fetchAllServiceCategories } from '../firebase/repairServicesService';
 import { iconMap } from '../components/home/iconMap';
+import RepairBookingModal from '../components/shared/RepairBookingModal';
 import './RepairServicesPage.css';
 
 // Static data for price ranges and sort options (moved outside component to prevent re-creation)
@@ -28,6 +29,8 @@ function RepairServicesPage() {
   const [sortBy, setSortBy] = useState('featured');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   
   // Firebase data
   const [repairServices, setRepairServices] = useState([]);
@@ -134,6 +137,16 @@ function RepairServicesPage() {
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(price);
+  };
+
+  const handleBookService = (service) => {
+    setSelectedService(service);
+    setShowBookingModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowBookingModal(false);
+    setSelectedService(null);
   };
 
   return (
@@ -298,7 +311,10 @@ function RepairServicesPage() {
                           <span className="price-label">Starting at</span>
                           <span className="price">{formatPrice(service.price)}</span>
                         </div>
-                        <button className="btn btn-primary">
+                        <button 
+                          className="btn btn-primary"
+                          onClick={() => handleBookService(service)}
+                        >
                           Book Now
                         </button>
                       </div>
@@ -338,6 +354,14 @@ function RepairServicesPage() {
       </section>
 
       <Footer />
+
+      {/* Booking Modal */}
+      {showBookingModal && selectedService && (
+        <RepairBookingModal
+          service={selectedService}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

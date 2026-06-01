@@ -7,8 +7,16 @@ import {
 import { sendAdminPasswordResetEmail } from '../../firebase/authService';
 import { logActivity } from '../../firebase/activityLogger';
 
-const ROLE_LABELS = { superadmin: 'Super Admin', admin: 'Admin', viewer: 'Viewer' };
-const ROLE_COLORS = { superadmin: '#d4af37', admin: '#6ee7b7', viewer: '#9ca3af' };
+const ROLE_LABELS = { 
+  super_admin: 'Super Admin', 
+  admin: 'Admin', 
+  order_manager: 'Order Manager'
+};
+const ROLE_COLORS = { 
+  super_admin: '#d4af37', 
+  admin: '#6ee7b7', 
+  order_manager: '#3b82f6'
+};
 
 function AdminManagement() {
   const { adminSession, isSuperAdmin } = useAdmin();
@@ -25,8 +33,8 @@ function AdminManagement() {
       setLoading(true);
       const list = await fetchAllAdmins();
       setAdmins(list.sort((a, b) => {
-        const order = { superadmin: 0, admin: 1, viewer: 2 };
-        return (order[a.role] ?? 3) - (order[b.role] ?? 3);
+        const order = { super_admin: 0, admin: 1, order_manager: 2 };
+        return (order[a.role] ?? 4) - (order[b.role] ?? 4);
       }));
     } catch (err) {
       setError('Failed to load admins.');
@@ -118,8 +126,9 @@ function AdminManagement() {
             required
           />
           <select value={newRole} onChange={e => setNewRole(e.target.value)} disabled={adding}>
+            <option value="super_admin">Super Admin</option>
             <option value="admin">Admin</option>
-            <option value="viewer">Viewer</option>
+            <option value="order_manager">Order Manager</option>
           </select>
           <button type="submit" disabled={adding || !newEmail}>
             {adding ? 'Sending…' : 'Send Invite'}
@@ -140,8 +149,11 @@ function AdminManagement() {
             {admins.map(admin => (
               <div key={admin.email} className="am-row">
                 <div className="am-row-info">
-                  <div className="am-avatar">
-                    {admin.role === 'superadmin' ? <Shield size={16} /> : <User size={16} />}
+                  <div className="am-avatar" style={{ 
+                    background: ROLE_COLORS[admin.role] + '33',
+                    color: ROLE_COLORS[admin.role]
+                  }}>
+                    {admin.role === 'super_admin' ? <Shield size={16} /> : <User size={16} />}
                   </div>
                   <div>
                     <p className="am-email">{admin.email}</p>
@@ -151,28 +163,34 @@ function AdminManagement() {
                     </p>
                   </div>
                 </div>
+
                 <div className="am-row-actions">
-                  {admin.role !== 'superadmin' ? (
+                  {admin.role !== 'super_admin' ? (
                     <select
                       value={admin.role}
                       onChange={e => handleRoleChange(admin.email, e.target.value)}
                       className="am-role-select"
                       style={{ borderColor: ROLE_COLORS[admin.role] }}
                     >
-                      {Object.entries(ROLES).filter(([, v]) => v !== 'superadmin').map(([k, v]) => (
+                      {Object.entries(ROLES).map(([k, v]) => (
                         <option key={k} value={v}>{ROLE_LABELS[v]}</option>
                       ))}
                     </select>
                   ) : (
                     <span className="am-role-badge" style={{ color: ROLE_COLORS[admin.role] }}>
-                      {ROLE_LABELS[admin.role]}
+                      🔒 {ROLE_LABELS[admin.role]}
                     </span>
                   )}
 
-                  {admin.role !== 'superadmin' && admin.email !== adminSession?.email && (
+                  {admin.role !== 'super_admin' && admin.email !== adminSession?.email && (
                     <button className="am-remove-btn" onClick={() => handleRemove(admin.email)} title="Remove admin">
                       <Trash2 size={14} />
                     </button>
+                  )}
+                  {admin.role === 'super_admin' && (
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280', marginLeft: '0.5rem' }}>
+                      (Protected)
+                    </span>
                   )}
                   {admin.email === adminSession?.email && (
                     <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>(you)</span>

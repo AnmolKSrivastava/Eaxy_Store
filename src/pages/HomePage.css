@@ -180,9 +180,10 @@
 /* Coverage Section */
 .coverage-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  align-items: center;
-  gap: 2.2rem;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 2rem;
+  margin-top: 2rem;
 }
 
 .coverage-stat {
@@ -205,6 +206,24 @@
 
 .coverage-stat span {
   color: var(--muted);
+}
+
+.coverage-map-container {
+  min-height: 380px;
+  height: 380px;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(15, 107, 83, 0.4);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.coverage-map-container .leaflet-container {
+  background: #1a1f2b;
+}
+
+.coverage-map-container .leaflet-popup-content-wrapper {
+  background: white;
+  border-radius: 8px;
 }
 
 .area-list {

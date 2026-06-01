@@ -1,0 +1,219 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function getAdminRole() {
+      // request.auth.token.email is the correct way to access email in Firestore rules
+      return isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.token.email))
+        ? get(/databases/$(database)/documents/admin/$(request.auth.token.email)).data.role
+        : null;
+    }
+    
+    function isAdmin() {
+      // Any user with a document in the admin collection is an admin
+      return isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.token.email));
+    }
+    
+    function isSuperAdmin() {
+      let role = getAdminRole();
+      return role == 'super_admin' || role == 'superadmin';
+    }
+    
+    function isOrderManager() {
+      // Super admins, admins, and order managers can manage orders
+      let role = getAdminRole();
+      return role in ['order_manager', 'super_admin', 'superadmin', 'admin'];
+    }
+    
+    // Users collection - user profiles
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // Admins collection - admin roles and permissions
+    match /admin/{email} {
+      // Allow all authenticated users to read admin docs (needed for isAdmin() checks)
+      allow read: if isSignedIn();
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() || 
+                      (isAdmin() && request.auth.email == email && 
+                       resource.data.role == request.resource.data.role);
+      allow delete: if isSuperAdmin() && 
+                       resource.data.role != 'super_admin' && 
+                       resource.data.role != 'superadmin';
+    }
+    
+    // Products collection
+    match /products/{productId} {
+      allow read: if true;  // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if true;  // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Service categories
+    match /service_categories/{categoryId} {
+      allow read: if true;  // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Repair services
+    match /repair_services/{serviceId} {
+      allow read: if true;  // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Coverage areas
+    match /coverage_areas/{areaId} {
+      allow read: if true;  // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Deals
+    match /deals/{dealId} {
+      allow read: if true;  // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Contact enquiries
+    match /contact_enquiries/{enquiryId} {
+      allow read: if isAdmin();
+      allow create: if true;  // Anyone can submit
+      allow update, delete: if isAdmin();
+    }
+    
+    // Activity logs
+    match /activity_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if isSuperAdmin();
+    }
+    
+    // ==================== CART, WISHLIST, ORDERS ====================
+    
+    // Carts collection - shopping cart items
+    match /carts/{userId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && (isOwner(userId) || isAdmin());
+    }
+    
+    // Wishlists collection - saved items
+    match /wishlists/{userId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && (isOwner(userId) || isAdmin());
+    }
+    
+    // Orders collection - product orders
+    match /orders/{orderId} {
+      // Single document read - users can read their own, admins can read all
+      allow get: if isOrderManager() || 
+                   (isSignedIn() && resource.data.userId == request.auth.uid);
+      
+      // Collection queries - only order managers can list all orders
+      allow list: if isOrderManager();
+      
+      // Users can create orders for themselves
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.status == 'pending';
+      
+      // Users can cancel their own pending orders, admins can update all
+      allow update: if isOrderManager() || 
+                      (isSignedIn() && 
+                       resource.data.userId == request.auth.uid && 
+                       resource.data.status == 'pending' &&
+                       request.resource.data.status == 'cancelled');
+      
+      // Only admins can delete orders
+      allow delete: if isSuperAdmin();
+    }
+    
+    // Repair requests collection - service requests
+    match /repair_requests/{requestId} {
+      // Single document read - users can read their own, admins can read all
+      allow get: if isAdmin() || 
+                   (isSignedIn() && resource.data.userId == request.auth.uid);
+      
+      // Collection queries - only admins can list all requests
+      allow list: if isAdmin();
+      
+      // Users can create requests for themselves
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.status == 'pending';
+      
+      // Users can cancel their own pending requests, admins can update all
+      allow update: if isAdmin() || 
+                      (isSignedIn() && 
+                       resource.data.userId == request.auth.uid && 
+                       resource.data.status == 'pending' &&
+                       request.resource.data.status == 'cancelled');
+      
+      // Only admins can delete requests
+      allow delete: if isSuperAdmin();
+    }
+    
+    // User addresses - delivery addresses
+    match /user_addresses/{addressId} {
+      // Users can read their own addresses
+      allow read: if isSignedIn() && 
+                    (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Users can create addresses for themselves
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Users can update/delete their own addresses
+      allow update, delete: if isSignedIn() && 
+                              (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Repair bookings - repair service bookings
+    match /repair_bookings/{bookingId} {
+      // Single document read - users can read their own, admins can read all
+      allow get: if isAdmin() || 
+                   (isSignedIn() && resource.data.userId == request.auth.uid);
+      
+      // Collection queries - only admins can list all bookings
+      allow list: if isAdmin();
+      
+      // Anyone can create bookings (guests allowed)
+      allow create: if true;
+      
+      // Users can cancel their own bookings, admins can update all
+      allow update: if isAdmin() || 
+                      (isSignedIn() && resource.data.userId == request.auth.uid);
+      
+      // Only admins can delete bookings
+      allow delete: if isAdmin();
+    }
+    
+    // ==================== ANALYTICS & STATS ====================
+    
+    // Analytics collection (optional - for cached stats)
+    match /analytics/{docId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}

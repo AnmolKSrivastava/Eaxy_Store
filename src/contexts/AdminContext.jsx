@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { isAdmin, getAdminData, PERMISSIONS } from '../firebase/adminService';
+import { isAdmin as checkIsAdmin, getAdminData, PERMISSIONS } from '../firebase/adminService';
 
 const AdminContext = createContext();
 
@@ -13,7 +13,7 @@ export function useAdmin() {
 
 export function AdminProvider({ children }) {
   const [adminSession, setAdminSession] = useState(null);   // Firebase user object
-  const [adminRole, setAdminRole] = useState(null);          // 'superadmin' | 'admin' | 'viewer'
+  const [adminRole, setAdminRole] = useState(null);          // 'super_admin' | 'admin' | 'order_manager'
   const [adminPermissions, setAdminPermissions] = useState([]);
   const [loadingAdminData, setLoadingAdminData] = useState(true);
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -22,10 +22,21 @@ export function AdminProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user?.email) {
         try {
-          const adminExists = await isAdmin(user.email);
+          const adminExists = await checkIsAdmin(user.email);
           if (adminExists) {
             const data = await getAdminData(user.email);
-            const role = data?.role || 'admin';
+            let role = data?.role || 'admin';
+            
+            // Migration: Map old role names to new ones
+            const roleMigration = {
+              'superadmin': 'super_admin',
+              'viewer': 'order_manager', // Default old viewers to order managers
+            };
+            if (roleMigration[role]) {
+              role = roleMigration[role];
+              console.warn(`AdminContext: Migrated role "${data?.role}" to "${role}". Update Firebase admin document.`);
+            }
+            
             setAdminSession(user);
             setAdminRole(role);
             setAdminPermissions(PERMISSIONS[role] || []);
@@ -54,7 +65,9 @@ export function AdminProvider({ children }) {
   }
 
   const hasPermission = (permission) => adminPermissions.includes(permission);
-  const isSuperAdmin = () => adminRole === 'superadmin';
+  const isSuperAdmin = () => adminRole === 'super_admin';
+  const isAdmin = () => adminRole === 'admin';
+  const isOrderManager = () => adminRole === 'order_manager';
 
   const value = {
     adminSession,
@@ -64,6 +77,8 @@ export function AdminProvider({ children }) {
     isAdminUser,
     hasPermission,
     isSuperAdmin,
+    isAdmin,
+    isOrderManager,
   };
 
   return (

@@ -176,6 +176,17 @@
   font-weight: 600;
 }
 
+.rating-stars .rating-value {
+  color: var(--text);
+}
+
+.rating-stars .review-count {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 400;
+  margin-left: 0.3rem;
+}
+
 /* Pricing */
 .product-pricing {
   padding: 1.5rem;
