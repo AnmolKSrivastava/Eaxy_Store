@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, Star, ShoppingCart, Heart } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
 import { sortOptions, priceRanges } from '../data/productsData';
@@ -11,6 +11,7 @@ import './ProductsPage.css';
 
 function ProductsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [products, setProducts] = useState([]);
@@ -48,6 +49,12 @@ function ProductsPage() {
           }))
         ];
         setCategories(transformedCategories);
+
+        // Pre-select category from URL param
+        const categoryParam = searchParams.get('category');
+        if (categoryParam && transformedCategories.some(c => c.id === categoryParam)) {
+          setSelectedCategory(categoryParam);
+        }
       } catch (err) {
         setError('Failed to load products: ' + err.message);
         console.error('Error loading products:', err);
@@ -57,7 +64,7 @@ function ProductsPage() {
     };
 
     loadData();
-  }, []);
+  }, [searchParams]);
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -296,11 +303,10 @@ function ProductsPage() {
                       style={{ animationDelay: `${idx * 0.05}s` }}
                       onClick={() => navigate(`/products/${product.id}`)}
                     >
-                      {product.badge && (
+                      {!product.inStock ? (
+                        <span className="product-badge out-of-stock">Out of Stock</span>
+                      ) : product.badge && (
                         <span className="product-badge">{product.badge}</span>
-                      )}
-                      {!product.inStock && (
-                        <span className="out-of-stock-badge">Out of Stock</span>
                       )}
                       <button
                         className={`wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}

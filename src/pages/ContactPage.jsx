@@ -43,7 +43,8 @@ function ContactPage() {
     {
       icon: Phone,
       title: 'Call Us',
-      details: ['+91 1800-123-4567', '+91 98765-43210'],
+      details: ['+91 96099 55655'],
+      link: 'tel:+919609955655',
       subtitle: 'Mon-Sat: 9 AM - 9 PM',
     },
     {
@@ -289,7 +290,7 @@ function ContactPage() {
             <h2>Need Immediate Assistance?</h2>
             <p>Our customer support team is available to help you right now</p>
             <div className="cta-actions">
-              <a href="tel:+918001234567" className="btn btn-primary btn-lg">
+              <a href="tel:+919609955655" className="btn btn-primary btn-lg">
                 <Phone size={18} />
                 Call Now
               </a>

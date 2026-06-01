@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
 import { fetchAllServiceCategories } from '../../firebase/repairServicesService';
 import { iconMap } from './iconMap';
 
 function RepairServicesSection() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -11,9 +13,11 @@ function RepairServicesSection() {
     const loadCategories = async () => {
       try {
         const data = await fetchAllServiceCategories();
-        // Sort by order field
-        const sortedData = data.sort((a, b) => (a.order || 0) - (b.order || 0));
-        setCategories(sortedData);
+        // Sort by order field and take top 4
+        const topCategories = data
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .slice(0, 4);
+        setCategories(topCategories);
       } catch (error) {
         console.error('Error loading service categories:', error);
       } finally {
@@ -23,6 +27,10 @@ function RepairServicesSection() {
 
     loadCategories();
   }, []);
+
+  const handleBookNow = (categoryId) => {
+    navigate(`/repair-services?category=${categoryId}`);
+  };
 
   if (loading) {
     return (
@@ -53,25 +61,25 @@ function RepairServicesSection() {
             <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>Add categories via Admin Dashboard → Services → Service Categories</p>
           </div>
         ) : (
-          <div className="card-grid three">
-            {categories.map((service, idx) => {
-              const Icon = iconMap[service.icon] || iconMap['wrench'];
+          <div className="card-grid four">
+            {categories.map((category, idx) => {
+              const Icon = iconMap[category.icon] || iconMap['wrench'];
               return (
-                <article key={service.id} className="glass-card reveal" style={{ animationDelay: `${idx * 0.08}s` }}>
+                <article key={category.id} className="glass-card reveal" style={{ animationDelay: `${idx * 0.08}s` }}>
                   <span className="icon-box">
                     <Icon size={24} />
                   </span>
-                  <h3>{service.name}</h3>
+                  <h3>{category.name}</h3>
                   <ul>
-                    {service.services && service.services.map((line) => (
+                    {category.services && category.services.map((line) => (
                       <li key={line}>
                         <CheckCircle2 size={16} />
                         <span>{line}</span>
                       </li>
                     ))}
                   </ul>
-                  <p className="price">{service.price}</p>
-                  <button className="btn btn-ghost block">Book Now</button>
+                  <p className="price">{category.price}</p>
+                  <button className="btn btn-primary block" onClick={() => handleBookNow(category.id)}>View Services</button>
                 </article>
               );
             })}

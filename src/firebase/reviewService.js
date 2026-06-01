@@ -66,11 +66,16 @@ export const getProductReviews = async (productId) => {
     const reviewsRef = collection(db, 'product_reviews');
     const q = query(
       reviewsRef,
-      where('itemId', '==', productId),
-      orderBy('createdAt', 'desc')
+      where('itemId', '==', productId)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Sort by createdAt in JavaScript to avoid composite index requirement
+    return reviews.sort((a, b) => {
+      const timeA = a.createdAt?.seconds || 0;
+      const timeB = b.createdAt?.seconds || 0;
+      return timeB - timeA; // Descending order (newest first)
+    });
   } catch (error) {
     console.error('Error fetching product reviews:', error);
     throw error;
@@ -87,11 +92,16 @@ export const getServiceReviews = async (serviceId) => {
     const reviewsRef = collection(db, 'service_reviews');
     const q = query(
       reviewsRef,
-      where('itemId', '==', serviceId),
-      orderBy('createdAt', 'desc')
+      where('itemId', '==', serviceId)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Sort by createdAt in JavaScript to avoid composite index requirement
+    return reviews.sort((a, b) => {
+      const timeA = a.createdAt?.seconds || 0;
+      const timeB = b.createdAt?.seconds || 0;
+      return timeB - timeA; // Descending order (newest first)
+    });
   } catch (error) {
     console.error('Error fetching service reviews:', error);
     throw error;
@@ -356,6 +366,54 @@ export const getRecentReviews = async (type = 'all', limitCount = 10) => {
     return reviews.sort((a, b) => b.createdAt - a.createdAt).slice(0, limitCount);
   } catch (error) {
     console.error('Error fetching recent reviews:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get top-rated reviews for testimonials section
+ * Fetches all reviews with rating > 4 and returns sorted by rating (desc) and recency
+ * @param {number} limitCount - Number of reviews to return
+ * @returns {Promise<Array>} Top reviews
+ */
+export const getFeaturedReviews = async (limitCount = 6) => {
+  try {
+    const reviews = [];
+    
+    // Fetch product reviews
+    const productReviewsRef = collection(db, 'product_reviews');
+    const productSnapshot = await getDocs(productReviewsRef);
+    reviews.push(...productSnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      type: 'product', 
+      ...doc.data() 
+    })));
+    
+    // Fetch service reviews
+    const serviceReviewsRef = collection(db, 'service_reviews');
+    const serviceSnapshot = await getDocs(serviceReviewsRef);
+    reviews.push(...serviceSnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      type: 'service', 
+      ...doc.data() 
+    })));
+    
+    // Filter for high ratings (higher than 4 stars), sort by rating and recency, then limit
+    return reviews
+      .filter(review => review.rating > 4)
+      .sort((a, b) => {
+        // First sort by rating (descending)
+        if (b.rating !== a.rating) {
+          return b.rating - a.rating;
+        }
+        // Then by creation date (newest first)
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      })
+      .slice(0, limitCount);
+  } catch (error) {
+    console.error('Error fetching featured reviews:', error);
     throw error;
   }
 };

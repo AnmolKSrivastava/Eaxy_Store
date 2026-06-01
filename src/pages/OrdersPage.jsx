@@ -47,7 +47,10 @@ function OrdersPage() {
   const loadOrders = async () => {
     try {
       setLoading(true);
+      console.log('📦 OrdersPage: Loading orders for user:', currentUser.uid);
       const userOrders = await getUserOrders(currentUser.uid);
+      console.log('📦 OrdersPage: Received orders:', userOrders.length);
+      console.log('📦 OrdersPage: Order IDs:', userOrders.map(o => o.orderId || o.id));
       setOrders(userOrders);
     } catch (error) {
       console.error('Error loading orders:', error);

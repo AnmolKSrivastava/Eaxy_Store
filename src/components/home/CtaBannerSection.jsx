@@ -15,10 +15,10 @@ function CtaBannerSection() {
             in Pune.
           </p>
           <div className="cta-row">
-            <button className="btn btn-light btn-lg">
+            <a href="tel:+919609955655" className="btn btn-light btn-lg">
               <Phone size={18} />
-              Call Now: 1800-EAXY-000
-            </button>
+              Call Now: +91 96099 55655
+            </a>
             <button className="btn btn-soft btn-lg">Schedule Pickup</button>
           </div>
         </article>

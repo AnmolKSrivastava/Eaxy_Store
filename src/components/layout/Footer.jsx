@@ -26,12 +26,14 @@ function Footer() {
           <p>Laptop Repair</p>
           <p>Mobile Repair</p>
           <p>Computer Repair</p>
-          <p>Express Delivery</p>
+          <p>Printer Repair</p>
         </div>
         <div>
           <h4>Contact</h4>
           <p>
-            <Phone size={16} /> 1800-EAXY-000
+            <a href="tel:+919609955655" style={{color: 'inherit', textDecoration: 'none'}}>
+              <Phone size={16} /> +91 96099 55655
+            </a>
           </p>
           <p>
             <Mail size={16} /> support@eaxystore.in

@@ -23,6 +23,7 @@ function ReviewSection({ type, itemId, itemName }) {
   const [reviews, setReviews] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -36,6 +37,7 @@ function ReviewSection({ type, itemId, itemName }) {
   const loadReviews = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError('');
       const [reviewsData, statsData] = await Promise.all([
         type === 'product' ? getProductReviews(itemId) : getServiceReviews(itemId),
         getRatingStats(type, itemId),
@@ -44,6 +46,7 @@ function ReviewSection({ type, itemId, itemName }) {
       setStats(statsData);
     } catch (err) {
       console.error('Error loading reviews:', err);
+      setLoadError(err.message || 'Failed to load reviews. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -158,6 +161,14 @@ function ReviewSection({ type, itemId, itemName }) {
           </button>
         )}
       </div>
+
+      {/* Load Error Display */}
+      {loadError && (
+        <div className="review-error" style={{ marginBottom: '1.5rem' }}>
+          <AlertCircle size={16} />
+          {loadError}
+        </div>
+      )}
 
       {/* Rating Summary */}
       {stats && stats.total > 0 && (

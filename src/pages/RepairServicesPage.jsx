@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, Star, Clock, Shield } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
 import { fetchAllRepairServices, fetchAllServiceCategories } from '../firebase/repairServicesService';
@@ -24,6 +25,7 @@ const serviceSortOptions = [
 ];
 
 function RepairServicesPage() {
+  const [searchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
@@ -64,6 +66,13 @@ function RepairServicesPage() {
         }));
 
         setServiceCategories([allCategory, ...categoriesWithCounts]);
+        
+        // Check for category parameter in URL
+        const categoryParam = searchParams.get('category');
+        if (categoryParam && [allCategory, ...categoriesWithCounts].some(cat => cat.id === categoryParam)) {
+          setSelectedCategory(categoryParam);
+        }
+        
         setError('');
       } catch (err) {
         console.error('Error loading repair services:', err);
@@ -74,7 +83,7 @@ function RepairServicesPage() {
     };
 
     loadData();
-  }, []);
+  }, [searchParams]);
 
   // Filter and sort services
   const filteredServices = useMemo(() => {
@@ -220,7 +229,7 @@ function RepairServicesPage() {
                 <h3>Service Category</h3>
                 <div className="filter-options">
                   {serviceCategories.map(cat => {
-                    const Icon = iconMap[cat.icon];
+                    const Icon = iconMap[cat.icon] || iconMap['wrench'];
                     return (
                       <button
                         key={cat.id}

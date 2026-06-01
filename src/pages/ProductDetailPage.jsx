@@ -180,12 +180,29 @@ function ProductDetailPage() {
                   alt={product.name}
                   className="main-image"
                 />
-                {product.badge && (
+                {!product.inStock ? (
+                  <span className="gallery-badge out-of-stock">Out of Stock</span>
+                ) : product.badge && (
                   <span className="gallery-badge">{product.badge}</span>
                 )}
-                {!product.inStock && (
-                  <span className="gallery-badge out-of-stock">Out of Stock</span>
-                )}
+                
+                {/* Wishlist and Share buttons */}
+                <div className="gallery-action-buttons">
+                  <button 
+                    className={`btn btn-ghost icon-btn ${isInWishlist(product.id) ? 'wishlist-active' : ''}`}
+                    onClick={handleAddToWishlist}
+                    title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <Heart 
+                      size={20} 
+                      fill={isInWishlist(product.id) ? 'var(--gold)' : 'none'}
+                      stroke="var(--gold)"
+                    />
+                  </button>
+                  <button className="btn btn-ghost icon-btn share-btn" onClick={handleShare}>
+                    <Share2 size={20} />
+                  </button>
+                </div>
               </div>
               {images.length > 1 && (
                 <div className="gallery-thumbnails">
@@ -304,16 +321,6 @@ function ProductDetailPage() {
                             ? 'Add More'
                             : 'Add to Cart'
                     }
-                  </button>
-                  <button 
-                    className={`btn btn-ghost icon-btn ${isInWishlist(product.id) ? 'wishlist-active' : ''}`}
-                    onClick={handleAddToWishlist}
-                    title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                  >
-                    <Heart size={20} fill={isInWishlist(product.id) ? 'currentColor' : 'none'} />
-                  </button>
-                  <button className="btn btn-ghost icon-btn" onClick={handleShare}>
-                    <Share2 size={20} />
                   </button>
                 </div>
                 

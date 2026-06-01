@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Chatbot.css';
 
 const Chatbot = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -84,14 +86,23 @@ const Chatbot = () => {
   };
 
   const quickActions = [
-    { label: 'Browse Products', action: 'Show me your products' },
-    { label: 'Repair Services', action: 'Tell me about repair services' },
-    { label: 'Track Order', action: 'How do I track my order?' },
-    { label: 'Contact Support', action: 'How can I contact support?' }
+    { label: 'Browse Products', action: 'Show me your products', navigate: '/products' },
+    { label: 'Repair Services', action: 'Tell me about repair services', navigate: '/repair-services' },
+    { label: 'Contact Us', navigate: '/contact' },
+    { label: 'Chat on WhatsApp', navigate: 'https://wa.me/919609955655' },
   ];
 
   const handleQuickAction = (action) => {
-    setInputMessage(action);
+    if (action.navigate) {
+      if (action.navigate.startsWith('http')) {
+        window.open(action.navigate, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      setIsOpen(false);
+      navigate(action.navigate);
+      return;
+    }
+    setInputMessage(action.action);
   };
 
   return (
@@ -172,7 +183,7 @@ const Chatbot = () => {
                 <button
                   key={index}
                   className="quick-action-btn"
-                  onClick={() => handleQuickAction(action.action)}
+                  onClick={() => handleQuickAction(action)}
                 >
                   {action.label}
                 </button>

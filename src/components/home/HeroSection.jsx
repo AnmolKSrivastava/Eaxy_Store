@@ -1,7 +1,10 @@
 import { ChevronRight, Clock, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { imageUrls } from '../../assets/images';
 
 function HeroSection() {
+  const navigate = useNavigate();
+
   return (
     <section id="top" className="hero section">
       <div className="hero-ambient hero-ambient-a" />
@@ -21,10 +24,10 @@ function HeroSection() {
             New and refurbished electronics delivered or repaired within 4 hours across Pune district.
           </p>
           <div className="cta-row">
-            <button className="btn btn-primary btn-lg">
+            <button className="btn btn-primary btn-lg" onClick={() => navigate('/products')}>
               Shop Products <ChevronRight size={18} />
             </button>
-            <button className="btn btn-ghost btn-lg">Book Repair</button>
+            <button className="btn btn-ghost btn-lg" onClick={() => navigate('/repair-services')}>Book Repair</button>
           </div>
           <div className="metrics">
             <div>

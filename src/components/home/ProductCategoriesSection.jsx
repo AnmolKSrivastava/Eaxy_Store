@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchAllCategories, fetchAllProducts } from '../../firebase/productsService';
 import { iconMap } from './iconMap';
 
@@ -48,6 +49,7 @@ const getIconForCategory = (categoryTitle, categoryIcon) => {
 };
 
 function ProductCategoriesSection() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,7 +126,7 @@ function ProductCategoriesSection() {
           {categories.map((category, idx) => {
             const Icon = getIconForCategory(category.title, category.icon);
             return (
-              <article key={category.id} className="media-card reveal" style={{ animationDelay: `${idx * 0.08}s` }}>
+              <article key={category.id} className="media-card reveal" style={{ animationDelay: `${idx * 0.08}s`, cursor: 'pointer' }} onClick={() => navigate(`/products?category=${category.slug}`)}>
                 {category.image && <img src={category.image} alt={category.title} />}
                 <div className="media-overlay" />
                 <div className="media-content">

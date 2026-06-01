@@ -23,7 +23,7 @@ function ServiceCategoriesManagement() {
     name: '',
     icon: '',
     order: 0,
-    services: [],
+    services: '',
     price: ''
   });
   
@@ -49,16 +49,6 @@ function ServiceCategoriesManagement() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    // Handle services textarea - convert to array
-    if (name === 'services') {
-      const servicesArray = value.split('\n').map(s => s.trim()).filter(s => s);
-      setFormData(prev => ({
-        ...prev,
-        services: servicesArray
-      }));
-      return;
-    }
     
     setFormData(prev => ({
       ...prev,
@@ -88,12 +78,17 @@ function ServiceCategoriesManagement() {
       setError('');
       setSuccess('');
 
+      // Convert services string to array
+      const servicesArray = typeof formData.services === 'string'
+        ? formData.services.split('\n').map(s => s.trim()).filter(s => s)
+        : formData.services || [];
+
       const categoryData = {
         id: formData.id,
         name: formData.name,
         icon: formData.icon || 'wrench',
         order: Number(formData.order) || 0,
-        services: formData.services || [],
+        services: servicesArray,
         price: formData.price || ''
       };
 
@@ -135,7 +130,7 @@ function ServiceCategoriesManagement() {
       name: category.name,
       icon: category.icon || '',
       order: category.order || 0,
-      services: category.services || [],
+      services: Array.isArray(category.services) ? category.services.join('\n') : '',
       price: category.price || ''
     });
     setShowModal(true);
@@ -173,7 +168,7 @@ function ServiceCategoriesManagement() {
       name: '',
       icon: '',
       order: 0,
-      services: [],
+      services: '',
       price: ''
     });
   };
@@ -341,7 +336,7 @@ function ServiceCategoriesManagement() {
                 <textarea
                   id="services"
                   name="services"
-                  value={formData.services.join('\n')}
+                  value={formData.services}
                   onChange={handleInputChange}
                   placeholder="Enter service names (one per line)&#10;e.g.,&#10;Screen Replacement&#10;Battery Upgrade&#10;Performance Boost&#10;Data Recovery"
                   rows="5"

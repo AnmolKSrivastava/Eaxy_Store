@@ -120,12 +120,18 @@ export const getUserRepairBookings = async (userId) => {
   const bookingsRef = collection(db, 'repair_bookings');
   const q = query(
     bookingsRef,
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
   );
   
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+  // Sort manually to avoid composite index requirement
+  return bookings.sort((a, b) => {
+    const timeA = a.createdAt?.seconds || 0;
+    const timeB = b.createdAt?.seconds || 0;
+    return timeB - timeA;
+  });
 };
 
 /**

@@ -116,7 +116,9 @@ function WishlistPage() {
                     <X size={18} />
                   </button>
                   
-                  {item.badge && (
+                  {!item.inStock ? (
+                    <span className="product-badge out-of-stock">Out of Stock</span>
+                  ) : item.badge && (
                     <span className="product-badge">{item.badge}</span>
                   )}
                   

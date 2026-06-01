@@ -186,69 +186,39 @@ export const getUserOrders = async (userId, limitCount = 50) => {
     console.log('🔍 getUserOrders called with userId:', userId);
     const ordersRef = collection(db, 'orders');
     
-    // Try with orderBy first
-    try {
-      const q = query(
-        ordersRef,
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc'),
-        limit(limitCount)
-      );
-      
-      const snapshot = await getDocs(q);
-      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log(`✅ Found ${orders.length} orders for user ${userId}`);
-      
-      if (orders.length === 0) {
-        // Debug: check if orders exist at all
-        const allOrdersQuery = query(ordersRef, limit(5));
-        const allSnapshot = await getDocs(allOrdersQuery);
-        console.log(`📊 Total orders in database (sample):`, allSnapshot.size);
-        if (allSnapshot.size > 0) {
-          const sampleOrder = allSnapshot.docs[0].data();
-          console.log(`📋 Sample order userId field:`, sampleOrder.userId);
-          console.log(`📋 Sample order customer.userId:`, sampleOrder.customer?.userId);
-          console.log(`🔍 Comparing with searched userId:`, userId);
-        }
+    // Query without orderBy to avoid index requirement
+    const q = query(
+      ordersRef,
+      where('userId', '==', userId)
+    );
+    
+    const snapshot = await getDocs(q);
+    const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Sort manually by createdAt or orderDate
+    orders.sort((a, b) => {
+      const dateA = a.createdAt?.seconds || a.orderDate?.seconds || 0;
+      const dateB = b.createdAt?.seconds || b.orderDate?.seconds || 0;
+      return dateB - dateA;
+    });
+    
+    console.log(`✅ Found ${orders.length} orders for user ${userId}`);
+    console.log('📋 Order IDs:', orders.map(o => o.orderId || o.id));
+    
+    if (orders.length === 0) {
+      // Debug: check if orders exist at all
+      const allOrdersQuery = query(ordersRef, limit(5));
+      const allSnapshot = await getDocs(allOrdersQuery);
+      console.log(`📊 Total orders in database (sample):`, allSnapshot.size);
+      if (allSnapshot.size > 0) {
+        const sampleOrder = allSnapshot.docs[0].data();
+        console.log(`📋 Sample order userId field:`, sampleOrder.userId);
+        console.log(`📋 Sample order customer.userId:`, sampleOrder.customer?.userId);
+        console.log(`🔍 Comparing with searched userId:`, userId);
       }
-      
-      return orders;
-    } catch (indexError) {
-      // If orderBy fails (no index), try without it
-      console.warn('orderBy failed, trying without ordering:', indexError);
-      const q = query(
-        ordersRef,
-        where('userId', '==', userId),
-        limit(limitCount)
-      );
-      
-      const snapshot = await getDocs(q);
-      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Sort manually by createdAt or orderDate
-      orders.sort((a, b) => {
-        const dateA = a.createdAt?.seconds || a.orderDate?.seconds || 0;
-        const dateB = b.createdAt?.seconds || b.orderDate?.seconds || 0;
-        return dateB - dateA;
-      });
-      
-      console.log(`✅ Found ${orders.length} orders for user ${userId} (manual sort)`);
-      
-      if (orders.length === 0) {
-        // Debug: check if orders exist at all
-        const allOrdersQuery = query(ordersRef, limit(5));
-        const allSnapshot = await getDocs(allOrdersQuery);
-        console.log(`📊 Total orders in database (sample):`, allSnapshot.size);
-        if (allSnapshot.size > 0) {
-          const sampleOrder = allSnapshot.docs[0].data();
-          console.log(`📋 Sample order userId field:`, sampleOrder.userId);
-          console.log(`📋 Sample order customer.userId:`, sampleOrder.customer?.userId);
-          console.log(`🔍 Comparing with searched userId:`, userId);
-        }
-      }
-      
-      return orders;
     }
+    
+    return orders.slice(0, limitCount);
   } catch (error) {
     console.error('❌ Error fetching user orders:', error);
     throw error;

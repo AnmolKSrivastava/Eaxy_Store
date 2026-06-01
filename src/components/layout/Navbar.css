@@ -107,6 +107,11 @@
   padding: 0 4px;
 }
 
+/* Hamburger button - hidden on desktop */
+.btn-icon.hamburger-btn {
+  display: none;
+}
+
 @media (max-width: 740px) {
   .nav-links {
     display: none;
@@ -115,6 +120,125 @@
   .nav-row {
     padding: 0 1rem;
   }
+
+  .nav-actions {
+    gap: 0.4rem;
+  }
+
+  .btn-icon.hamburger-btn {
+    display: inline-flex;
+  }
+
+  .profile-trigger .profile-name,
+  .profile-trigger .chevron {
+    display: none;
+  }
+
+  .login-btn-text {
+    display: none;
+  }
+
+  .login-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: unset !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    border-radius: 0.7rem !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: var(--text) !important;
+  }
+
+  .login-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: transparent !important;
+  }
+
+  .brand {
+    font-size: 1.1rem;
+  }
+
+  .brand-logo {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+}
+
+/* Mobile Menu Drawer */
+.mobile-menu {
+  background: var(--card-bg, #1a1f2b);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 1rem;
+  animation: dropdownFade 0.15s ease;
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.mobile-nav-links a {
+  display: block;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: background 0.15s;
+}
+
+.mobile-nav-links a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gold);
+}
+
+.mobile-user-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.15s;
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mobile-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gold);
+}
+
+.mobile-menu-item.logout {
+  color: #ef4444;
+}
+
+.mobile-menu-item.logout:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
 }
 
 /* Profile Menu */
