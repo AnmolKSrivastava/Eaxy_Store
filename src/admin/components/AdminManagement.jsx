@@ -5,6 +5,7 @@ import {
   fetchAllAdmins, removeAdmin, updateAdminRole, ROLES
 } from '../../firebase/adminService';
 import { sendAdminInviteViaCloudFunction } from '../../firebase/cloudFunctionsService';
+import { sendAdminPasswordResetEmail } from '../../firebase/authService';
 import { logActivity } from '../../firebase/activityLogger';
 
 const ROLE_LABELS = { 
@@ -56,14 +57,17 @@ function AdminManagement() {
     try {
       setAdding(true);
       
-      // Call Cloud Function to create admin and send invitation
-      const result = await sendAdminInviteViaCloudFunction(
+      // Step 1: Call Cloud Function to create Firebase Auth user + Firestore admin document
+      await sendAdminInviteViaCloudFunction(
         newEmail.trim(), 
         newRole,
-        newEmail.split('@')[0] // Use email prefix as display name
+        newEmail.split('@')[0]
       );
+
+      // Step 2: Now that the user exists in Firebase Auth, send the password reset email
+      await sendAdminPasswordResetEmail(newEmail.trim());
       
-      flash('success', result.message || `Invite sent to ${newEmail}. They'll receive a password setup email.`);
+      flash('success', `Invite sent to ${newEmail}. They'll receive a password setup email shortly.`);
       setNewEmail('');
       setNewRole('admin');
       loadAdmins();

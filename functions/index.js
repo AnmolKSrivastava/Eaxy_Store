@@ -105,14 +105,6 @@ exports.sendAdminInvite = functions.https.onRequest((req, res) => {
         }
       }
 
-      // Generate password reset link (valid for 1 hour)
-      const actionCodeSettings = {
-        url: `${functions.config().app?.url || 'https://eaxy-store.web.app'}/admin/password-setup`,
-        handleCodeInApp: false,
-      };
-
-      const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
-
       // Create admin document in Firestore
       await admin.firestore().collection('admin').doc(email).set({
         role: role,
@@ -130,14 +122,13 @@ exports.sendAdminInvite = functions.https.onRequest((req, res) => {
         timestamp: new Date().toISOString(),
       });
 
-      console.log(`✅ Admin invitation created successfully for ${email}`);
-      console.log(`Password reset link: ${resetLink}`);
+      console.log(`✅ Admin user created successfully for ${email}. Frontend will send password reset email.`);
 
       return res.status(200).json({
         result: {
           success: true,
-          message: `Admin invitation sent to ${email}`,
-          resetLink: resetLink,
+          message: `Admin account created for ${email}`,
+          userCreated: true,
         }
       });
 
@@ -155,10 +146,10 @@ function generateSecurePassword() {
   const length = 20;
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
   let password = '';
-  const randomValues = new Uint32Array(length);
-  crypto.getRandomValues(randomValues);
+  const crypto = require('crypto');
+  const randomBytes = crypto.randomBytes(length);
   for (let i = 0; i < length; i++) {
-    password += charset[randomValues[i] % charset.length];
+    password += charset[randomBytes[i] % charset.length];
   }
   return password;
 }
