@@ -1,8 +1,7 @@
-import { httpsCallable } from 'firebase/functions';
-import { functions } from './config';
+import { auth } from './config';
 
 /**
- * Send admin invitation via Cloud Function
+ * Send admin invitation via Cloud Function (HTTPS endpoint)
  * Creates Firebase Auth account and sends password setup email
  * 
  * @param {string} email - Email of the new admin
@@ -12,32 +11,41 @@ import { functions } from './config';
  */
 export async function sendAdminInviteViaCloudFunction(email, role, displayName = '') {
   try {
-    const sendInvite = httpsCallable(functions, 'sendAdminInvite');
-    const result = await sendInvite({ email, role, displayName });
-    return result.data;
-  } catch (error) {
-    console.error('Error calling sendAdminInvite Cloud Function:', error);
-    
-    // Extract user-friendly error message
-    if (error.code) {
-      const errorMessages = {
-        'functions/unauthenticated': 'You must be signed in to send invitations.',
-        'functions/permission-denied': 'Only super admins can send admin invitations.',
-        'functions/invalid-argument': error.message || 'Invalid invitation data provided.',
-        'functions/already-exists': 'An admin with this email already exists.',
-        'functions/resource-exhausted': 'Cannot add more than 4 super admins.',
-        'functions/internal': error.message || 'Failed to send invitation. Please try again.',
-      };
-      
-      throw new Error(errorMessages[error.code] || error.message || 'Failed to send invitation');
+    // Get current user's ID token for authentication
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('You must be signed in to send invitations.');
     }
     
+    const idToken = await user.getIdToken();
+    
+    const response = await fetch(
+      'https://us-central1-eaxy-store.cloudfunctions.net/sendAdminInvite',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ email, role, displayName }),
+      }
+    );
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    }
+    
+    return data.result;
+  } catch (error) {
+    console.error('Error calling sendAdminInvite Cloud Function:', error);
     throw new Error(error.message || 'Failed to send admin invitation');
   }
 }
 
 /**
- * Revoke admin access via Cloud Function
+ * Revoke admin access via Cloud Function (HTTPS endpoint)
  * Removes admin document and optionally disables Firebase Auth account
  * 
  * @param {string} email - Email of the admin to revoke
@@ -46,23 +54,34 @@ export async function sendAdminInviteViaCloudFunction(email, role, displayName =
  */
 export async function revokeAdminAccessViaCloudFunction(email, disableAuthAccount = false) {
   try {
-    const revokeAccess = httpsCallable(functions, 'revokeAdminAccess');
-    const result = await revokeAccess({ email, disableAuthAccount });
-    return result.data;
-  } catch (error) {
-    console.error('Error calling revokeAdminAccess Cloud Function:', error);
-    
-    if (error.code) {
-      const errorMessages = {
-        'functions/unauthenticated': 'You must be signed in.',
-        'functions/permission-denied': 'Only super admins can revoke admin access.',
-        'functions/invalid-argument': error.message || 'Invalid data provided.',
-        'functions/internal': error.message || 'Failed to revoke access. Please try again.',
-      };
-      
-      throw new Error(errorMessages[error.code] || error.message || 'Failed to revoke access');
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('You must be signed in.');
     }
     
+    const idToken = await user.getIdToken();
+    
+    const response = await fetch(
+      'https://us-central1-eaxy-store.cloudfunctions.net/revokeAdminAccess',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ email, disableAuthAccount }),
+      }
+    );
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    }
+    
+    return data.result;
+  } catch (error) {
+    console.error('Error calling revokeAdminAccess Cloud Function:', error);
     throw new Error(error.message || 'Failed to revoke admin access');
   }
 }
