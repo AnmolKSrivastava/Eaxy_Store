@@ -109,20 +109,45 @@ export const getUserReviews = async (userId, type = 'all') => {
     const reviews = [];
     
     if (type === 'product' || type === 'all') {
-      const productReviewsRef = collection(db, 'product_reviews');
-      const q = query(productReviewsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      reviews.push(...snapshot.docs.map(doc => ({ id: doc.id, type: 'product', ...doc.data() })));
+      try {
+        const productReviewsRef = collection(db, 'product_reviews');
+        const q = query(productReviewsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        reviews.push(...snapshot.docs.map(doc => ({ id: doc.id, type: 'product', ...doc.data() })));
+      } catch (indexError) {
+        // Fallback without orderBy if index doesn't exist
+        console.warn('product_reviews orderBy failed, fetching without order:', indexError);
+        const productReviewsRef = collection(db, 'product_reviews');
+        const q = query(productReviewsRef, where('userId', '==', userId));
+        const snapshot = await getDocs(q);
+        reviews.push(...snapshot.docs.map(doc => ({ id: doc.id, type: 'product', ...doc.data() })));
+      }
     }
     
     if (type === 'service' || type === 'all') {
-      const serviceReviewsRef = collection(db, 'service_reviews');
-      const q = query(serviceReviewsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      reviews.push(...snapshot.docs.map(doc => ({ id: doc.id, type: 'service', ...doc.data() })));
+      try {
+        const serviceReviewsRef = collection(db, 'service_reviews');
+        const q = query(serviceReviewsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        reviews.push(...snapshot.docs.map(doc => ({ id: doc.id, type: 'service', ...doc.data() })));
+      } catch (indexError) {
+        // Fallback without orderBy if index doesn't exist
+        console.warn('service_reviews orderBy failed, fetching without order:', indexError);
+        const serviceReviewsRef = collection(db, 'service_reviews');
+        const q = query(serviceReviewsRef, where('userId', '==', userId));
+        const snapshot = await getDocs(q);
+        reviews.push(...snapshot.docs.map(doc => ({ id: doc.id, type: 'service', ...doc.data() })));
+      }
     }
     
-    return reviews.sort((a, b) => b.createdAt - a.createdAt);
+    // Sort manually by createdAt
+    reviews.sort((a, b) => {
+      const dateA = a.createdAt?.seconds || 0;
+      const dateB = b.createdAt?.seconds || 0;
+      return dateB - dateA;
+    });
+    
+    return reviews;
   } catch (error) {
     console.error('Error fetching user reviews:', error);
     throw error;

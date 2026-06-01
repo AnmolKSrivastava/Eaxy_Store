@@ -109,7 +109,7 @@ service cloud.firestore {
     
     // Carts collection - shopping cart items
     match /carts/{userId} {
-      allow read: if isSignedIn() && isOwner(userId);
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
       allow create: if isSignedIn() && isOwner(userId);
       allow update: if isSignedIn() && isOwner(userId);
       allow delete: if isSignedIn() && (isOwner(userId) || isAdmin());
@@ -117,7 +117,7 @@ service cloud.firestore {
     
     // Wishlists collection - saved items
     match /wishlists/{userId} {
-      allow read: if isSignedIn() && isOwner(userId);
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
       allow create: if isSignedIn() && isOwner(userId);
       allow update: if isSignedIn() && isOwner(userId);
       allow delete: if isSignedIn() && (isOwner(userId) || isAdmin());
@@ -206,6 +206,36 @@ service cloud.firestore {
       
       // Only admins can delete bookings
       allow delete: if isAdmin();
+    }
+    
+    // ==================== REVIEWS ====================
+    
+    // Product reviews collection
+    match /product_reviews/{reviewId} {
+      // Anyone can read reviews
+      allow read: if true;
+      
+      // Only signed-in users can create reviews
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Users can update/delete their own reviews, admins can update/delete any
+      allow update, delete: if isAdmin() || 
+                              (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+    
+    // Service reviews collection
+    match /service_reviews/{reviewId} {
+      // Anyone can read reviews
+      allow read: if true;
+      
+      // Only signed-in users can create reviews
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Users can update/delete their own reviews, admins can update/delete any
+      allow update, delete: if isAdmin() || 
+                              (isSignedIn() && resource.data.userId == request.auth.uid);
     }
     
     // ==================== ANALYTICS & STATS ====================

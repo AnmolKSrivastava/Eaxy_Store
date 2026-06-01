@@ -22,6 +22,7 @@ function CustomerManagement() {
         const users = await getAllUsers();
         
         // Transform Firebase user data to match component format
+        // Stats will be fetched when viewing individual customer details
         const transformedUsers = users.map(user => ({
           id: user.uid || user.id,
           name: user.name || 'N/A',
@@ -32,13 +33,13 @@ function CustomerManagement() {
           provider: user.provider || 'email',
           joinDate: user.createdAt ? new Date(user.createdAt.seconds * 1000).toISOString().split('T')[0] : 'N/A',
           lastLogin: user.updatedAt ? new Date(user.updatedAt.seconds * 1000).toISOString().split('T')[0] : 'N/A',
-          // These fields will be populated when order/cart/wishlist collections are implemented
-          totalOrders: 0,
+          // Placeholder values - real data loaded in modal
+          totalOrders: '-',
           totalSpent: 0,
           averageRating: 0,
-          wishlistItems: 0,
+          wishlistItems: '-',
           cartItems: 0,
-          status: 'active', // Default status, can be updated based on last activity
+          status: 'active',
           reviews: 0,
           testimonials: 0,
           contactSubmissions: 0,
@@ -65,13 +66,6 @@ function CustomerManagement() {
     return matchesSearch && matchesStatus;
   });
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -98,9 +92,19 @@ function CustomerManagement() {
 
   const totalCustomers = customers.length;
   const activeCustomers = customers.filter(c => c.status === 'active' || c.status === 'vip').length;
-  const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpent, 0);
-  const totalOrdersCount = customers.reduce((sum, c) => sum + c.totalOrders, 0);
-  const averageOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0;
+  const registeredToday = customers.filter(c => {
+    if (c.joinDate === 'N/A') return false;
+    const joinDate = new Date(c.joinDate);
+    const today = new Date();
+    return joinDate.toDateString() === today.toDateString();
+  }).length;
+  const registeredThisMonth = customers.filter(c => {
+    if (c.joinDate === 'N/A') return false;
+    const joinDate = new Date(c.joinDate);
+    const today = new Date();
+    return joinDate.getMonth() === today.getMonth() && 
+           joinDate.getFullYear() === today.getFullYear();
+  }).length;
 
   // Show loading state
   if (loading) {
@@ -184,8 +188,8 @@ function CustomerManagement() {
             <TrendingUp size={24} />
           </div>
           <div className="stat-details">
-            <h3>{formatPrice(totalRevenue)}</h3>
-            <p>Total Revenue</p>
+            <h3>{registeredThisMonth}</h3>
+            <p>New This Month</p>
           </div>
         </div>
         <div className="stat-card">
@@ -193,8 +197,8 @@ function CustomerManagement() {
             <ShoppingBag size={24} />
           </div>
           <div className="stat-details">
-            <h3>{formatPrice(averageOrderValue)}</h3>
-            <p>Avg Order Value</p>
+            <h3>{registeredToday}</h3>
+            <p>Registered Today</p>
           </div>
         </div>
       </div>
@@ -296,12 +300,14 @@ function CustomerManagement() {
                   <span className="orders-badge">{customer.totalOrders}</span>
                 </td>
                 <td>
-                  <span className="amount">{formatPrice(customer.totalSpent)}</span>
+                  <span className="amount" style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
+                    View Details
+                  </span>
                 </td>
                 <td>
-                  <div className="rating">
-                    <Star size={14} fill="#fbbf24" stroke="#fbbf24" />
-                    <span>{customer.averageRating.toFixed(1)}</span>
+                  <div className="rating" style={{ color: 'var(--muted)' }}>
+                    <Star size={14} />
+                    <span>-</span>
                   </div>
                 </td>
                 <td>

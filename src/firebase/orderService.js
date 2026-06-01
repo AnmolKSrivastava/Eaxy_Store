@@ -111,6 +111,7 @@ export const createOrder = async (orderData) => {
     paidAt: null,
     
     // Timestamps
+    createdAt: serverTimestamp(),
     orderDate: serverTimestamp(),
     orderDeadline: orderDeadline.toISOString(),
     confirmedAt: null,
@@ -181,16 +182,77 @@ export const getOrder = async (orderId) => {
 export const getUserOrders = async (userId, limitCount = 50) => {
   if (!userId) throw new Error('User ID is required');
   
-  const ordersRef = collection(db, 'orders');
-  const q = query(
-    ordersRef,
-    where('userId', '==', userId),
-    orderBy('orderDate', 'desc'),
-    limit(limitCount)
-  );
-  
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    console.log('🔍 getUserOrders called with userId:', userId);
+    const ordersRef = collection(db, 'orders');
+    
+    // Try with orderBy first
+    try {
+      const q = query(
+        ordersRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(limitCount)
+      );
+      
+      const snapshot = await getDocs(q);
+      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log(`✅ Found ${orders.length} orders for user ${userId}`);
+      
+      if (orders.length === 0) {
+        // Debug: check if orders exist at all
+        const allOrdersQuery = query(ordersRef, limit(5));
+        const allSnapshot = await getDocs(allOrdersQuery);
+        console.log(`📊 Total orders in database (sample):`, allSnapshot.size);
+        if (allSnapshot.size > 0) {
+          const sampleOrder = allSnapshot.docs[0].data();
+          console.log(`📋 Sample order userId field:`, sampleOrder.userId);
+          console.log(`📋 Sample order customer.userId:`, sampleOrder.customer?.userId);
+          console.log(`🔍 Comparing with searched userId:`, userId);
+        }
+      }
+      
+      return orders;
+    } catch (indexError) {
+      // If orderBy fails (no index), try without it
+      console.warn('orderBy failed, trying without ordering:', indexError);
+      const q = query(
+        ordersRef,
+        where('userId', '==', userId),
+        limit(limitCount)
+      );
+      
+      const snapshot = await getDocs(q);
+      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Sort manually by createdAt or orderDate
+      orders.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || a.orderDate?.seconds || 0;
+        const dateB = b.createdAt?.seconds || b.orderDate?.seconds || 0;
+        return dateB - dateA;
+      });
+      
+      console.log(`✅ Found ${orders.length} orders for user ${userId} (manual sort)`);
+      
+      if (orders.length === 0) {
+        // Debug: check if orders exist at all
+        const allOrdersQuery = query(ordersRef, limit(5));
+        const allSnapshot = await getDocs(allOrdersQuery);
+        console.log(`📊 Total orders in database (sample):`, allSnapshot.size);
+        if (allSnapshot.size > 0) {
+          const sampleOrder = allSnapshot.docs[0].data();
+          console.log(`📋 Sample order userId field:`, sampleOrder.userId);
+          console.log(`📋 Sample order customer.userId:`, sampleOrder.customer?.userId);
+          console.log(`🔍 Comparing with searched userId:`, userId);
+        }
+      }
+      
+      return orders;
+    }
+  } catch (error) {
+    console.error('❌ Error fetching user orders:', error);
+    throw error;
+  }
 };
 
 /**
@@ -199,21 +261,57 @@ export const getUserOrders = async (userId, limitCount = 50) => {
  * @returns {Promise<Array>} Array of orders
  */
 export const getAllOrders = async (filters = {}) => {
-  const ordersRef = collection(db, 'orders');
-  let q = query(ordersRef, orderBy('orderDate', 'desc'));
-  
-  // Apply status filter
-  if (filters.status && filters.status !== 'all') {
-    q = query(ordersRef, where('status', '==', filters.status), orderBy('orderDate', 'desc'));
+  try {
+    const ordersRef = collection(db, 'orders');
+    
+    // Try with ordering
+    try {
+      let q;
+      
+      // Apply status filter
+      if (filters.status && filters.status !== 'all') {
+        q = query(ordersRef, where('status', '==', filters.status), orderBy('createdAt', 'desc'));
+      } 
+      // Apply area filter
+      else if (filters.area && filters.area !== 'all') {
+        q = query(ordersRef, where('deliveryAddress.area', '==', filters.area), orderBy('createdAt', 'desc'));
+      }
+      // No filters
+      else {
+        q = query(ordersRef, orderBy('createdAt', 'desc'));
+      }
+      
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (indexError) {
+      // If orderBy fails, get all and sort manually
+      console.warn('getAllOrders orderBy failed, fetching without ordering:', indexError);
+      
+      let q = query(ordersRef);
+      
+      // Apply filters without orderBy
+      if (filters.status && filters.status !== 'all') {
+        q = query(ordersRef, where('status', '==', filters.status));
+      } else if (filters.area && filters.area !== 'all') {
+        q = query(ordersRef, where('deliveryAddress.area', '==', filters.area));
+      }
+      
+      const snapshot = await getDocs(q);
+      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Sort manually
+      orders.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || a.orderDate?.seconds || 0;
+        const dateB = b.createdAt?.seconds || b.orderDate?.seconds || 0;
+        return dateB - dateA;
+      });
+      
+      return orders;
+    }
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    throw error;
   }
-  
-  // Apply area filter
-  if (filters.area && filters.area !== 'all') {
-    q = query(ordersRef, where('deliveryAddress.area', '==', filters.area), orderBy('orderDate', 'desc'));
-  }
-  
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
 /**
