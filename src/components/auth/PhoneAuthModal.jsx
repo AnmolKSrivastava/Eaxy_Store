@@ -12,6 +12,8 @@ function PhoneAuthModal({ onClose, onSuccess, onNewUser }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [otpSent, setOtpSent] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   const formatPhoneNumber = (number) => {
     // Remove all non-digits
@@ -31,6 +33,11 @@ function PhoneAuthModal({ onClose, onSuccess, onNewUser }) {
       return;
     }
 
+    if (retryCount >= MAX_RETRIES) {
+      setError(`Maximum retry attempts (${MAX_RETRIES}) exceeded. Please try again in 30 minutes.`);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -39,14 +46,21 @@ function PhoneAuthModal({ onClose, onSuccess, onNewUser }) {
       setConfirmationResult(result);
       setOtpSent(true);
       setStep(2);
+      setRetryCount(0); // Reset retry count on success
     } catch (error) {
       console.error('Send OTP Error:', error);
+      setRetryCount(prev => prev + 1);
+      
       if (error.code === 'auth/invalid-phone-number') {
         setError('Invalid phone number format');
       } else if (error.code === 'auth/too-many-requests') {
-        setError('Too many attempts. Please try again later.');
+        setError('Too many attempts. Please try again in 30 minutes.');
+      } else if (error.code === 'auth/quota-exceeded') {
+        setError('SMS service temporarily unavailable. Please try again later or contact support.');
+      } else if (error.message && error.message.includes('timeout')) {
+        setError('Request timeout. Please check your internet connection and try again.');
       } else {
-        setError(error.message || 'Failed to send OTP');
+        setError(error.message || 'Failed to send OTP. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -164,7 +178,27 @@ function PhoneAuthModal({ onClose, onSuccess, onNewUser }) {
                   disabled={loading}
                 />
               </div>
-              <div id="recaptcha-container"></div>
+              <div 
+                id="recaptcha-container" 
+                style={{
+                  marginTop: '20px',
+                  marginBottom: '10px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  minHeight: '78px',
+                  transition: 'all 0.3s ease'
+                }}
+              ></div>
+              {retryCount > 0 && (
+                <p style={{ 
+                  fontSize: '12px', 
+                  color: '#ff9800', 
+                  textAlign: 'center',
+                  marginBottom: '10px'
+                }}>
+                  Retry attempt {retryCount} of {MAX_RETRIES}
+                </p>
+              )}
               <button
                 className="primary-btn"
                 onClick={handleSendOTP}

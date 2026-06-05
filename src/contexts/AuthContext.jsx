@@ -60,13 +60,32 @@ export function AuthProvider({ children }) {
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = null;
       }
+      
+      // Use normal (visible) reCAPTCHA for better reliability
       window.recaptchaVerifier = new RecaptchaVerifier(auth, elementId, {
-        size: 'invisible',
-        callback: () => {},
+        size: 'normal', // Changed from 'invisible' for better reliability
+        callback: (response) => {
+          console.log('[Auth] reCAPTCHA solved successfully');
+        },
         'expired-callback': () => {
+          console.warn('[Auth] reCAPTCHA expired, please retry');
+          window.recaptchaVerifier = null;
+        },
+        'error-callback': (error) => {
+          console.error('[Auth] reCAPTCHA error:', error);
           window.recaptchaVerifier = null;
         }
       });
+      
+      // Render the reCAPTCHA
+      window.recaptchaVerifier.render().then((widgetId) => {
+        window.recaptchaWidgetId = widgetId;
+        console.log('[Auth] reCAPTCHA rendered successfully');
+      }).catch((error) => {
+        console.error('[Auth] reCAPTCHA render failed:', error);
+        throw new Error('Failed to load reCAPTCHA. Please refresh the page.');
+      });
+      
       return window.recaptchaVerifier;
     } catch (error) {
       setError(error.message);
@@ -74,12 +93,20 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Send OTP to phone number (elementId is the DOM element id for reCAPTCHA)
-  const sendPhoneOTP = async (phoneNumber, elementId) => {
+  // Send OTP to phone number with timeout (elementId is the DOM element id for reCAPTCHA)
+  const sendPhoneOTP = async (phoneNumber, elementId, timeout = 30000) => {
     try {
       setError(null);
       const verifier = setupRecaptcha(elementId);
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier);
+      
+      // Add timeout to prevent indefinite waiting
+      const otpPromise = signInWithPhoneNumber(auth, phoneNumber, verifier);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout. Please check your internet connection and try again.')), timeout)
+      );
+      
+      const confirmationResult = await Promise.race([otpPromise, timeoutPromise]);
+      console.log('[Auth] OTP sent successfully to', phoneNumber);
       return confirmationResult;
     } catch (error) {
       // Clear verifier on error so it can be recreated on retry
@@ -87,6 +114,17 @@ export function AuthProvider({ children }) {
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = null;
       }
+      
+      // Provide better error messages
+      console.error('[Auth] Send OTP failed:', error.code, error.message);
+      if (error.code === 'auth/quota-exceeded') {
+        error.message = 'SMS quota exceeded. Please try again later or contact support.';
+      } else if (error.code === 'auth/invalid-phone-number') {
+        error.message = 'Invalid phone number. Please check the format (+91XXXXXXXXXX).';
+      } else if (error.message.includes('timeout')) {
+        error.message = 'Request timeout. Please check your internet connection and try again.';
+      }
+      
       setError(error.message);
       throw error;
     }

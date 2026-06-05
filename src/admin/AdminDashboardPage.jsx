@@ -11,6 +11,7 @@ import { ServiceCategoriesManagement } from './components/ServiceCategoriesManag
 import CustomerManagement from './components/CustomerManagement';
 import CoverageManagement from './components/CoverageManagement';
 import CoverageAreasManagement from './components/CoverageAreasManagement';
+import ContentManagement from './components/ContentManagement';
 import AdminManagement from './components/AdminManagement';
 import AdminPasswordChange from './components/AdminPasswordChange';
 import ActivityLogs from './components/ActivityLogs';
@@ -26,6 +27,11 @@ function AdminDashboardPage() {
   const [logisticsView, setLogisticsView] = useState('map');
   const [settingsView, setSettingsView] = useState('password');
   const { hasPermission } = useAdmin();
+
+  const handleNavigateToDeals = () => {
+    setActiveSection('products');
+    setProductView('deals');
+  };
 
   const Denied = () => (
     <div style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af' }}>
@@ -64,6 +70,8 @@ function AdminDashboardPage() {
         }
       case 'customers':
         return hasPermission('users') ? <CustomerManagement /> : <Denied />;
+      case 'content':
+        return hasPermission('products') ? <ContentManagement onNavigateToDeals={handleNavigateToDeals} /> : <Denied />;
       case 'logistics':
         if (!hasPermission('products') && !hasPermission('services')) return <Denied />;
         switch (logisticsView) {

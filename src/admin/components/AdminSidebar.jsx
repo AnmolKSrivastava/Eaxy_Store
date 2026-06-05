@@ -6,6 +6,7 @@ import {
   Wrench, 
   Users, 
   MapPin, 
+  FileText, 
   BarChart3, 
   Settings 
 } from 'lucide-react';
@@ -28,6 +29,7 @@ function AdminSidebar({ activeSection, setActiveSection, setOrderTab, setProduct
     { id: 'products', label: 'Products', icon: Package, submenu: ['Inventory', 'Categories', 'Deals'], permission: ['products', 'inventory'] },
     { id: 'services', label: 'Services', icon: Wrench, submenu: ['Repair Services', 'Service Categories'], permission: 'services' },
     { id: 'customers', label: 'Customers', icon: Users, permission: 'users' },
+    { id: 'content', label: 'Content', icon: FileText, permission: 'products' },
     { id: 'logistics', label: 'Coverage & Logistics', icon: MapPin, submenu: ['Coverage Map', 'Coverage Areas'], permission: ['products', 'services'] },
     { id: 'reports', label: 'Reports', icon: BarChart3, permission: 'analytics' },
     { id: 'settings', label: 'Settings', icon: Settings, permission: ['settings', 'password_change'] },

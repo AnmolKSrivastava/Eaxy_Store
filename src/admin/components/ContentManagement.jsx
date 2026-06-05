@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Edit, Eye, EyeOff, CheckCircle, XCircle, Clock, User, Star, MessageSquare } from 'lucide-react';
+import { Edit, Eye, EyeOff, CheckCircle, XCircle, Clock, User, Star, MessageSquare, Tag } from 'lucide-react';
 import ContentEditModal from './ContentEditModal';
 import './ContentManagement.css';
 
-function ContentManagement() {
+function ContentManagement({ onNavigateToDeals }) {
   const [activeTab, setActiveTab] = useState('sections');
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
@@ -321,6 +321,16 @@ function ContentManagement() {
                       <Edit size={16} />
                       Edit Content
                     </button>
+                    {section.type === 'hero' && onNavigateToDeals && (
+                      <button 
+                        className="action-btn deals"
+                        onClick={onNavigateToDeals}
+                        title="Manage deals for hero section"
+                      >
+                        <Tag size={16} />
+                        Manage Deals
+                      </button>
+                    )}
                     <span className={`status-badge ${section.status}`}>
                       {section.status === 'active' ? '🟢 Active' : '⚫ Inactive'}
                     </span>
