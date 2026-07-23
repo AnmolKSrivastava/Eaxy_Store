@@ -58,7 +58,7 @@ Add to your `.env` file:
 
 ```env
 # reCAPTCHA for Phone Authentication
-REACT_APP_RECAPTCHA_SITE_KEY=your_recaptcha_site_key_here
+<set your reCAPTCHA site key using your local environment file>
 ```
 
 ### Step 3: Update AuthContext.jsx

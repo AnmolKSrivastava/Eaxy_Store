@@ -143,16 +143,8 @@ Test on: http://localhost:3000
 ## 📋 Configuration Summary
 
 ### Local Development (.env)
-```env
-REACT_APP_FIREBASE_API_KEY=AIzaSyCN3nYvFHW2la2J4htB_Fx-ZV-egRQrcWA
-REACT_APP_FIREBASE_AUTH_DOMAIN=eaxy-store.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=eaxy-store
-REACT_APP_FIREBASE_STORAGE_BUCKET=eaxy-store.firebasestorage.app
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=208361974644
-REACT_APP_FIREBASE_APP_ID=1:208361974644:web:cf0cc194a1d06a17a45a21
-REACT_APP_FIREBASE_MEASUREMENT_ID=G-5LNHZ350BY
-REACT_APP_RECAPTCHA_SITE_KEY=6LeHVw4tAAAAAOIGfMK0brgE-EdU4IDw10mHo3t4
-```
+Environment values are intentionally omitted from documentation.
+Configure all required variables only in local `.env` files and secret managers.
 
 ### GitHub Actions Secrets
 All environment variables above are stored as GitHub Secrets for CI/CD.
