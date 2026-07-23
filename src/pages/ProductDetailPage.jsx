@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Star,
@@ -17,9 +17,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Expand,
-  X,
-  ZoomIn,
 } from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
 import { ReviewSection } from '../components/shared';
@@ -43,8 +40,8 @@ function ProductDetailPage() {
   const [cartSuccess, setCartSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [thumbnailStart, setThumbnailStart] = useState(0);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomState, setZoomState] = useState({ visible: false, x: 50, y: 50 });
+  const zoomFrameRef = useRef(null);
 
   useEffect(() => {
     const loadProductData = async () => {
@@ -62,8 +59,7 @@ function ProductDetailPage() {
         setSelectedImage(0);
         setActiveTab('overview');
         setThumbnailStart(0);
-        setIsLightboxOpen(false);
-        setIsZoomed(false);
+        setZoomState({ visible: false, x: 50, y: 50 });
 
         // Load related products from same category
         if (productData.category) {
@@ -133,6 +129,14 @@ function ProductDetailPage() {
       setTimeout(() => setError(''), 3000);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (zoomFrameRef.current) {
+        cancelAnimationFrame(zoomFrameRef.current);
+      }
+    };
+  }, []);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -257,15 +261,30 @@ function ProductDetailPage() {
     handleSelectImage(nextIndex);
   };
 
-  const handleOpenLightbox = () => {
-    if (images.length === 0) return;
-    setIsLightboxOpen(true);
-    setIsZoomed(false);
+  const handleZoomMove = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    if (zoomFrameRef.current) {
+      cancelAnimationFrame(zoomFrameRef.current);
+    }
+
+    zoomFrameRef.current = requestAnimationFrame(() => {
+      setZoomState({
+        visible: true,
+        x: Math.min(100, Math.max(0, x)),
+        y: Math.min(100, Math.max(0, y)),
+      });
+    });
   };
 
-  const handleCloseLightbox = () => {
-    setIsLightboxOpen(false);
-    setIsZoomed(false);
+  const handleZoomLeave = () => {
+    if (zoomFrameRef.current) {
+      cancelAnimationFrame(zoomFrameRef.current);
+      zoomFrameRef.current = null;
+    }
+    setZoomState((current) => ({ ...current, visible: false }));
   };
 
   return (
@@ -319,62 +338,71 @@ function ProductDetailPage() {
                   </div>
                 )}
 
-                <div className="gallery-main">
-                  <img 
-                    src={images[selectedImage] || product.image} 
-                    alt={product.name}
-                    className="main-image"
-                  />
-                  {!product.inStock ? (
-                    <span className="gallery-badge out-of-stock">Out of Stock</span>
-                  ) : product.badge && (
-                    <span className="gallery-badge">{product.badge}</span>
-                  )}
+                <div className="gallery-main zoom-main-wrap">
+                  <div
+                    className="zoom-image-stage"
+                    onMouseMove={handleZoomMove}
+                    onMouseEnter={handleZoomMove}
+                    onMouseLeave={handleZoomLeave}
+                  >
+                    <img 
+                      src={images[selectedImage] || product.image} 
+                      alt={product.name}
+                      className="main-image"
+                    />
+                    {!product.inStock ? (
+                      <span className="gallery-badge out-of-stock">Out of Stock</span>
+                    ) : product.badge && (
+                      <span className="gallery-badge">{product.badge}</span>
+                    )}
 
-                  {images.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        className="gallery-nav-btn gallery-main-nav gallery-main-prev"
-                        onClick={handleGalleryPrevious}
-                        aria-label="Previous product image"
+                    {images.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          className="gallery-nav-btn gallery-main-nav gallery-main-prev"
+                          onClick={handleGalleryPrevious}
+                          aria-label="Previous product image"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                        <button
+                          type="button"
+                          className="gallery-nav-btn gallery-main-nav gallery-main-next"
+                          onClick={handleGalleryNext}
+                          aria-label="Next product image"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      </>
+                    )}
+                    
+                    <div className="gallery-action-buttons">
+                      <button 
+                        className={`btn btn-ghost icon-btn ${isInWishlist(product.id) ? 'wishlist-active' : ''}`}
+                        onClick={handleAddToWishlist}
+                        title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
-                        <ChevronLeft size={20} />
+                        <Heart 
+                          size={20} 
+                          fill={isInWishlist(product.id) ? 'var(--gold)' : 'none'}
+                          stroke="var(--gold)"
+                        />
                       </button>
-                      <button
-                        type="button"
-                        className="gallery-nav-btn gallery-main-nav gallery-main-next"
-                        onClick={handleGalleryNext}
-                        aria-label="Next product image"
-                      >
-                        <ChevronRight size={20} />
+                      <button className="btn btn-ghost icon-btn share-btn" onClick={handleShare}>
+                        <Share2 size={20} />
                       </button>
-                    </>
-                  )}
-                  
-                  <div className="gallery-action-buttons">
-                    <button
-                      className="btn btn-ghost icon-btn zoom-btn"
-                      onClick={handleOpenLightbox}
-                      title="Open fullscreen preview"
-                    >
-                      <Expand size={20} />
-                    </button>
-                    <button 
-                      className={`btn btn-ghost icon-btn ${isInWishlist(product.id) ? 'wishlist-active' : ''}`}
-                      onClick={handleAddToWishlist}
-                      title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                    >
-                      <Heart 
-                        size={20} 
-                        fill={isInWishlist(product.id) ? 'var(--gold)' : 'none'}
-                        stroke="var(--gold)"
-                      />
-                    </button>
-                    <button className="btn btn-ghost icon-btn share-btn" onClick={handleShare}>
-                      <Share2 size={20} />
-                    </button>
+                    </div>
                   </div>
+
+                  <div
+                    className={`zoom-preview-panel ${zoomState.visible ? 'visible' : ''}`}
+                    style={{
+                      backgroundImage: `url(${images[selectedImage] || product.image})`,
+                      backgroundPosition: `${zoomState.x}% ${zoomState.y}%`,
+                    }}
+                    aria-hidden={!zoomState.visible}
+                  />
                 </div>
               </div>
             </div>
@@ -733,61 +761,6 @@ function ProductDetailPage() {
           )}
         </div>
       </section>
-
-      {isLightboxOpen && (
-        <div className="gallery-lightbox" onClick={handleCloseLightbox} role="dialog" aria-modal="true">
-          <div className="gallery-lightbox-inner" onClick={(e) => e.stopPropagation()}>
-            <div className="gallery-lightbox-toolbar">
-              <button
-                type="button"
-                className="gallery-nav-btn lightbox-toolbar-btn"
-                onClick={() => setIsZoomed((current) => !current)}
-                aria-label={isZoomed ? 'Reset zoom' : 'Zoom image'}
-              >
-                <ZoomIn size={18} />
-              </button>
-              <button
-                type="button"
-                className="gallery-nav-btn lightbox-toolbar-btn"
-                onClick={handleCloseLightbox}
-                aria-label="Close fullscreen preview"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {images.length > 1 && (
-              <button
-                type="button"
-                className="gallery-nav-btn lightbox-nav lightbox-prev"
-                onClick={handleGalleryPrevious}
-                aria-label="Previous fullscreen image"
-              >
-                <ChevronLeft size={24} />
-              </button>
-            )}
-
-            <div className="gallery-lightbox-image-wrap">
-              <img
-                src={images[selectedImage] || product.image}
-                alt={`${product.name} fullscreen preview`}
-                className={`gallery-lightbox-image ${isZoomed ? 'zoomed' : ''}`}
-              />
-            </div>
-
-            {images.length > 1 && (
-              <button
-                type="button"
-                className="gallery-nav-btn lightbox-nav lightbox-next"
-                onClick={handleGalleryNext}
-                aria-label="Next fullscreen image"
-              >
-                <ChevronRight size={24} />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
