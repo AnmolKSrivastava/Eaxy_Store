@@ -321,12 +321,21 @@ function ProductsPage() {
                         />
                       </button>
                       <div className="product-image">
-                        <img src={product.image} alt={product.name} />
+                        <img 
+                          src={
+                            product.images && product.images.length > 0 
+                              ? product.images[0] 
+                              : product.image
+                          } 
+                          alt={product.name} 
+                        />
                       </div>
                       <div className="product-info">
                         <div className="product-title-row">
                           <h3>{product.name}</h3>
-                          {product.category && product.category.toLowerCase().includes('refurbish') && (
+                          {(product.isRefurbished !== undefined
+                            ? product.isRefurbished
+                            : product.category && product.category.toLowerCase().includes('refurbish')) && (
                             <span className="refurbished-badge">Refurbished</span>
                           )}
                         </div>

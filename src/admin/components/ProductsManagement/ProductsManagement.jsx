@@ -32,6 +32,37 @@ function ProductsManagement() {
     loadData();
   }, []);
 
+  const parseMultilineItems = (value = '') => (
+    value
+      .split('\n')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  );
+
+  const parseFaqItems = (value = '') => (
+    parseMultilineItems(value)
+      .map((entry) => {
+        const [question, ...answerParts] = entry.split('|');
+        return {
+          question: question?.trim() || '',
+          answer: answerParts.join('|').trim() || '',
+        };
+      })
+      .filter((item) => item.question)
+  );
+
+  const parseTechSpecs = (value = '') => (
+    parseMultilineItems(value)
+      .map((entry) => {
+        const [label, ...valueParts] = entry.split('|');
+        return {
+          label: label?.trim() || '',
+          value: valueParts.join('|').trim() || '',
+        };
+      })
+      .filter((item) => item.label && item.value)
+  );
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -62,7 +93,15 @@ function ProductsManagement() {
   };
 
   const handleSubmit = async (formData, editing) => {
-    if (!formData.name || !formData.category || !formData.price) {
+    if (
+      !formData.name ||
+      !formData.category ||
+      !formData.brand ||
+      !formData.modelNumber ||
+      !formData.productCode ||
+      !formData.description ||
+      !formData.price
+    ) {
       setError('Please fill in all required fields');
       return;
     }
@@ -74,14 +113,32 @@ function ProductsManagement() {
       const productData = {
         name: formData.name,
         category: formData.category,
+        brand: formData.brand,
+        modelNumber: formData.modelNumber,
+        productCode: formData.productCode,
+        partNumber: formData.partNumber?.trim() || '',
+        warranty: formData.warranty?.trim() || '',
+        shippingNote: formData.shippingNote?.trim() || '',
+        customerCare: formData.customerCare?.trim() || '',
+        emiNote: formData.emiNote?.trim() || '',
         price: Number(formData.price),
         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : Number(formData.price),
-        image: formData.image,
+        image: formData.image || (Array.isArray(formData.images) ? formData.images[0] : ''),
+        images: Array.isArray(formData.images)
+          ? formData.images
+          : formData.image
+            ? [formData.image]
+            : [],
         badge: formData.badge,
         rating: Number(formData.rating),
         inStock: formData.inStock,
+        isRefurbished: Boolean(formData.isRefurbished),
         specs: formData.specs.filter((spec) => spec.trim() !== ''),
+        techSpecs: parseTechSpecs(formData.techSpecsText),
         description: formData.description,
+        includedInBox: parseMultilineItems(formData.includedInBoxText),
+        offers: parseMultilineItems(formData.offersText),
+        faq: parseFaqItems(formData.faqText),
       };
 
       if (editing) {

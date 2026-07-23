@@ -78,7 +78,7 @@ function DealsManagement() {
         productName: product.name,
         price: product.price,
         originalPrice: product.originalPrice || product.price,
-        image: product.image,
+        image: product.images && product.images.length > 0 ? product.images[0] : product.image,
         badge: formData.badge,
         priority: Number(formData.priority),
         isActive: formData.isActive,

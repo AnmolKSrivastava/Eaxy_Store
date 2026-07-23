@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, ShoppingCart, Heart, Share2, Check, AlertCircle, ArrowLeft } from 'lucide-react';
+import {
+  Star,
+  ShoppingCart,
+  Heart,
+  Share2,
+  Check,
+  AlertCircle,
+  ArrowLeft,
+  Truck,
+  ShieldCheck,
+  Headphones,
+  BadgePercent,
+  CreditCard,
+} from 'lucide-react';
 import { Footer, Navbar } from '../components/layout';
 import { ReviewSection } from '../components/shared';
 import { fetchProductById, fetchProductsByCategory } from '../firebase/productsService';
@@ -21,6 +34,7 @@ function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     const loadProductData = async () => {
@@ -36,6 +50,7 @@ function ProductDetailPage() {
         
         setProduct(productData);
         setSelectedImage(0);
+        setActiveTab('overview');
 
         // Load related products from same category
         if (productData.category) {
@@ -156,8 +171,40 @@ function ProductDetailPage() {
     );
   }
 
-  const images = product.image ? [product.image] : [];
-  const isRefurbished = product.category && product.category.toLowerCase().includes('refurbish');
+  const images = product.images && product.images.length > 0 
+    ? product.images 
+    : product.image 
+      ? [product.image] 
+      : [];
+  const isRefurbished = product.isRefurbished !== undefined
+    ? product.isRefurbished
+    : Boolean(product.category && product.category.toLowerCase().includes('refurbish'));
+  const productHighlights = Array.isArray(product.specs)
+    ? product.specs.filter(Boolean).slice(0, 6)
+    : [];
+  const productDescription = product.description || 'No description available for this product.';
+  const savings = product.originalPrice && product.originalPrice > product.price
+    ? product.originalPrice - product.price
+    : 0;
+  const productOffers = Array.isArray(product.offers) ? product.offers.filter(Boolean) : [];
+  const includedInBox = Array.isArray(product.includedInBox) ? product.includedInBox.filter(Boolean) : [];
+  const productFaqs = Array.isArray(product.faq)
+    ? product.faq
+        .map((item) => (typeof item === 'string'
+          ? { question: item, answer: '' }
+          : item))
+        .filter((item) => item?.question)
+    : [];
+  const structuredTechSpecs = Array.isArray(product.techSpecs)
+    ? product.techSpecs.filter((item) => item?.label && item?.value)
+    : [];
+  const tabItems = [
+    { key: 'overview', label: 'Overview' },
+    { key: 'specs', label: 'Tech Specs' },
+    { key: 'reviews', label: 'Reviews' },
+    { key: 'faq', label: 'FAQ' },
+    { key: 'offers', label: 'Offers' },
+  ];
 
   return (
     <div className="page">
@@ -165,14 +212,12 @@ function ProductDetailPage() {
 
       <section className="section product-detail-section">
         <div className="container">
-          {/* Back Button */}
           <button className="back-btn reveal" onClick={() => navigate('/products')}>
             <ArrowLeft size={20} />
             Back to Products
           </button>
 
-          <div className="product-detail-grid">
-            {/* Image Gallery */}
+          <div className="product-detail-grid" id="product-overview">
             <div className="product-gallery reveal">
               <div className="gallery-main">
                 <img 
@@ -219,26 +264,51 @@ function ProductDetailPage() {
               )}
             </div>
 
-            {/* Product Info */}
             <div className="product-detail-info reveal">
               <div className="product-header">
-                <h1>{product.name}</h1>
+                <div className="product-title-stack">
+                  <p className="product-series">{product.brand || 'Eaxy Store'} {product.modelNumber || ''}</p>
+                  <h1>{product.name}</h1>
+                </div>
                 {isRefurbished && (
                   <span className="refurbished-tag">Refurbished</span>
                 )}
               </div>
 
-              {product.rating && (
-                <div className="product-rating-row">
-                  <div className="rating-stars">
-                    <Star size={18} fill="var(--gold)" stroke="var(--gold)" />
-                    <span className="rating-value">{product.rating}</span>
-                    {product.reviewCount && (
-                      <span className="review-count">({product.reviewCount} reviews)</span>
-                    )}
-                  </div>
+              <div className="product-rating-row">
+                <div className="rating-stars">
+                  <Star size={18} fill="var(--gold)" stroke="var(--gold)" />
+                  <span className="rating-value">{product.rating || '4.0'}</span>
+                  <span className="review-count">({product.reviewCount || '0'} reviews)</span>
                 </div>
-              )}
+              </div>
+
+              <div className="product-summary-card">
+                <h2>Product Description</h2>
+                <p>{productDescription}</p>
+                {productHighlights.length > 0 && (
+                  <ul className="product-highlights-list">
+                    {productHighlights.map((spec, idx) => (
+                      <li key={idx}>{spec}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="product-identifiers-card">
+                <div className="identifier-item">
+                  <span className="identifier-label">Model Number</span>
+                  <span className="identifier-value">{product.modelNumber || 'N/A'}</span>
+                </div>
+                <div className="identifier-item">
+                  <span className="identifier-label">Part Number</span>
+                  <span className="identifier-value">{product.partNumber || 'N/A'}</span>
+                </div>
+                <div className="identifier-item">
+                  <span className="identifier-label">Product Code</span>
+                  <span className="identifier-value">{product.productCode || 'N/A'}</span>
+                </div>
+              </div>
 
               <div className="product-pricing">
                 <div className="price-main">
@@ -250,48 +320,23 @@ function ProductDetailPage() {
                     </>
                   )}
                 </div>
-                <p className="price-note">Inclusive of all taxes</p>
-              </div>
-
-              {/* Specs */}
-              {Array.isArray(product.specs) && product.specs.length > 0 && (
-                <div className="product-specs-section">
-                  <h3>Key Specifications</h3>
-                  <ul className="specs-list">
-                    {product.specs.map((spec, idx) => (
-                      <li key={idx}>
-                        <Check size={16} />
-                        <span>{spec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Description */}
-              {product.description && (
-                <div className="product-description">
-                  <h3>Description</h3>
-                  <p>{product.description}</p>
-                </div>
-              )}
-
-              {/* Stock Status */}
-              <div className={`stock-status ${product.inStock ? 'in-stock' : 'out-of-stock'}`}>
-                {product.inStock ? (
-                  <>
-                    <Check size={18} />
-                    <span>In Stock</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle size={18} />
-                    <span>Out of Stock</span>
-                  </>
+                {savings > 0 && (
+                  <div className="price-savings-row">
+                    <span className="mrp-label">M.R.P</span>
+                    <span className="save-label">Save {formatPrice(savings)}</span>
+                  </div>
                 )}
+                <p className="price-note">Inclusive of all taxes</p>
+                <div className="product-stock-line">
+                  <span className={`stock-pill ${product.inStock ? 'in-stock' : 'out-of-stock'}`}>
+                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                  <span className="emi-note">
+                    {product.emiNote || 'No Cost EMI style offers can be highlighted here'}
+                  </span>
+                </div>
               </div>
 
-              {/* Actions */}
               <div className="product-actions">
                 {product.inStock && (
                   <div className="quantity-selector">
@@ -304,7 +349,7 @@ function ProductDetailPage() {
                   </div>
                 )}
 
-                <div className="action-buttons">
+                <div className="action-buttons action-buttons-dual">
                   <button 
                     className="btn btn-primary btn-large"
                     onClick={handleAddToCart}
@@ -322,8 +367,33 @@ function ProductDetailPage() {
                             : 'Add to Cart'
                     }
                   </button>
+                  <button
+                    className={`btn btn-ghost btn-large secondary-action ${isInWishlist(product.id) ? 'wishlist-active' : ''}`}
+                    onClick={handleAddToWishlist}
+                  >
+                    <Heart
+                      size={20}
+                      fill={isInWishlist(product.id) ? 'currentColor' : 'none'}
+                    />
+                    {isInWishlist(product.id) ? 'Wishlisted' : 'Add to Wish List'}
+                  </button>
                 </div>
-                
+
+                <div className="offer-strip">
+                  {(productOffers.slice(0, 2).length > 0 ? productOffers.slice(0, 2) : [
+                    'Instant discount and promotional pricing can be highlighted here.',
+                    'Flexible payment, EMI, or card-based offers can be listed here.',
+                  ]).map((offer, index) => (
+                    <div className="offer-card" key={index}>
+                      {index === 0 ? <BadgePercent size={18} /> : <CreditCard size={18} />}
+                      <div>
+                        <strong>{index === 0 ? 'Featured Offer' : 'Payment Benefit'}</strong>
+                        <p>{offer}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
                 {cartSuccess && (
                   <div className="cart-success-message">
                     <Check size={18} />
@@ -334,18 +404,186 @@ function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Reviews Section */}
-          {product && (
-            <ReviewSection 
-              type="product" 
-              itemId={product.id} 
-              itemName={product.name} 
-            />
-          )}
+          <div className="product-service-strip reveal">
+            <div className="service-item">
+              <Truck size={18} />
+              <div>
+                <strong>Free Shipping</strong>
+                <span>{product.shippingNote || 'Shipping support on eligible orders'}</span>
+              </div>
+            </div>
+            <div className="service-item">
+              <ShieldCheck size={18} />
+              <div>
+                <strong>Warranty</strong>
+                <span>{product.warranty || 'Standard warranty applies'}</span>
+              </div>
+            </div>
+            <div className="service-item">
+              <Headphones size={18} />
+              <div>
+                <strong>Customer Care</strong>
+                <span>{product.customerCare || 'Support available for product assistance'}</span>
+              </div>
+            </div>
+          </div>
 
-          {/* Related Products */}
+          <div className="product-content-sections reveal">
+            <div className="product-anchor-nav" role="tablist" aria-label="Product detail sections">
+              {tabItems.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`product-tab-trigger ${activeTab === tab.key ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.key)}
+                  role="tab"
+                  aria-selected={activeTab === tab.key}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="product-section-tabs">
+              {activeTab === 'overview' && (
+                <section className="product-section-card product-tab-panel" id="product-overview-panel">
+                  <h2>Overview</h2>
+                  <div className="product-meta-list detailed-meta-list">
+                    <div className="product-meta-item">
+                      <span className="meta-label">Brand</span>
+                      <span className="meta-value">{product.brand || 'N/A'}</span>
+                    </div>
+                    <div className="product-meta-item">
+                      <span className="meta-label">Model Number</span>
+                      <span className="meta-value">{product.modelNumber || 'N/A'}</span>
+                    </div>
+                    <div className="product-meta-item">
+                      <span className="meta-label">Product Code</span>
+                      <span className="meta-value">{product.productCode || 'N/A'}</span>
+                    </div>
+                    <div className="product-meta-item">
+                      <span className="meta-label">Description</span>
+                      <span className="meta-value">{productDescription}</span>
+                    </div>
+                    <div className="product-meta-item">
+                      <span className="meta-label">Price</span>
+                      <span className="meta-value">{formatPrice(product.price)}</span>
+                    </div>
+                  </div>
+                  {includedInBox.length > 0 && (
+                    <div className="tab-subsection">
+                      <h3>Included In The Box</h3>
+                      <ul className="specs-list specs-list-detailed compact-list">
+                        {includedInBox.map((item, idx) => (
+                          <li key={idx}>
+                            <Check size={16} />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {activeTab === 'specs' && (
+                <section className="product-section-card product-tab-panel" id="product-specs">
+                  <h2>Tech Specs</h2>
+                  {structuredTechSpecs.length > 0 ? (
+                    <div className="product-meta-list detailed-meta-list tech-specs-grid">
+                      {structuredTechSpecs.map((spec, idx) => (
+                        <div className="product-meta-item" key={idx}>
+                          <span className="meta-label">{spec.label}</span>
+                          <span className="meta-value">{spec.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="product-meta-list detailed-meta-list">
+                      <div className="product-meta-item">
+                        <span className="meta-label">Part Number</span>
+                        <span className="meta-value">{product.partNumber || 'N/A'}</span>
+                      </div>
+                      <div className="product-meta-item">
+                        <span className="meta-label">Warranty</span>
+                        <span className="meta-value">{product.warranty || 'N/A'}</span>
+                      </div>
+                      <div className="product-meta-item">
+                        <span className="meta-label">Shipping</span>
+                        <span className="meta-value">{product.shippingNote || 'N/A'}</span>
+                      </div>
+                      <div className="product-meta-item">
+                        <span className="meta-label">Category</span>
+                        <span className="meta-value">{product.category || 'N/A'}</span>
+                      </div>
+                    </div>
+                  )}
+                  {Array.isArray(product.specs) && product.specs.length > 0 && (
+                    <div className="tab-subsection">
+                      <h3>Key Specifications</h3>
+                      <ul className="specs-list specs-list-detailed">
+                        {product.specs.map((spec, idx) => (
+                          <li key={idx}>
+                            <Check size={16} />
+                            <span>{spec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {activeTab === 'reviews' && product && (
+                <section className="product-section-card product-tab-panel" id="product-reviews">
+                  <ReviewSection 
+                    type="product" 
+                    itemId={product.id} 
+                    itemName={product.name} 
+                  />
+                </section>
+              )}
+
+              {activeTab === 'faq' && (
+                <section className="product-section-card product-tab-panel" id="product-faq">
+                  <h2>FAQ</h2>
+                  {productFaqs.length > 0 ? (
+                    <div className="faq-list">
+                      {productFaqs.map((item, idx) => (
+                        <div className="faq-item" key={idx}>
+                          <h3>{item.question}</h3>
+                          <p>{item.answer || 'Answer coming soon.'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="tab-empty-state">No FAQs available for this product yet.</p>
+                  )}
+                </section>
+              )}
+
+              {activeTab === 'offers' && (
+                <section className="product-section-card product-tab-panel" id="product-offers">
+                  <h2>Offers</h2>
+                  {productOffers.length > 0 ? (
+                    <div className="offers-list-detailed">
+                      {productOffers.map((offer, idx) => (
+                        <div className="offer-line-item" key={idx}>
+                          <BadgePercent size={16} />
+                          <span>{offer}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="tab-empty-state">No active offers available right now.</p>
+                  )}
+                </section>
+              )}
+            </div>
+          </div>
+
           {relatedProducts.length > 0 && (
-            <div className="related-products-section reveal">
+            <div className="related-products-section reveal" id="related-products">
               <h2>Related Products</h2>
               <div className="related-products-grid">
                 {relatedProducts.map((relatedProduct) => (
@@ -355,7 +593,14 @@ function ProductDetailPage() {
                     onClick={() => navigate(`/products/${relatedProduct.id}`)}
                   >
                     <div className="related-product-image">
-                      <img src={relatedProduct.image} alt={relatedProduct.name} />
+                      <img 
+                        src={
+                          relatedProduct.images && relatedProduct.images.length > 0 
+                            ? relatedProduct.images[0] 
+                            : relatedProduct.image
+                        } 
+                        alt={relatedProduct.name} 
+                      />
                     </div>
                     <div className="related-product-info">
                       <h4>{relatedProduct.name}</h4>

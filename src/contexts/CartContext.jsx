@@ -104,7 +104,7 @@ export function CartProvider({ children }) {
       const item = {
         productId: product.id,
         name: product.name,
-        image: product.image,
+        image: product.images && product.images.length > 0 ? product.images[0] : product.image,
         price: product.price,
         quantity,
         inStock: product.inStock !== undefined ? product.inStock : true,

@@ -37,7 +37,15 @@ function ProductsTable({
             products.map((product) => (
               <tr key={product.id}>
                 <td>
-                  <img src={product.image} alt={product.name} className="pm-product-img" />
+                  <img 
+                    src={
+                      product.images && product.images.length > 0 
+                        ? product.images[0] 
+                        : product.image
+                    } 
+                    alt={product.name} 
+                    className="pm-product-img" 
+                  />
                 </td>
                 <td>
                   <strong>{product.name}</strong>
