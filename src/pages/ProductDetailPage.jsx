@@ -13,8 +13,6 @@ import {
   Headphones,
   BadgePercent,
   CreditCard,
-  ChevronUp,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -39,7 +37,6 @@ function ProductDetailPage() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [thumbnailStart, setThumbnailStart] = useState(0);
   const [zoomState, setZoomState] = useState({ visible: false, x: 50, y: 50 });
   const zoomFrameRef = useRef(null);
 
@@ -58,7 +55,6 @@ function ProductDetailPage() {
         setProduct(productData);
         setSelectedImage(0);
         setActiveTab('overview');
-        setThumbnailStart(0);
         setZoomState({ visible: false, x: 50, y: 50 });
 
         // Load related products from same category
@@ -222,31 +218,9 @@ function ProductDetailPage() {
     { key: 'faq', label: 'FAQ' },
     { key: 'offers', label: 'Offers' },
   ];
-  const visibleThumbnailCount = 4;
-  const maxThumbnailStart = Math.max(0, images.length - visibleThumbnailCount);
-  const visibleThumbnails = images.slice(
-    thumbnailStart,
-    thumbnailStart + visibleThumbnailCount
-  );
 
   const handleSelectImage = (index) => {
     setSelectedImage(index);
-
-    if (index < thumbnailStart) {
-      setThumbnailStart(index);
-      return;
-    }
-
-    if (index >= thumbnailStart + visibleThumbnailCount) {
-      setThumbnailStart(index - visibleThumbnailCount + 1);
-    }
-  };
-
-  const handleThumbnailStep = (direction) => {
-    setThumbnailStart((current) => {
-      const next = current + direction;
-      return Math.min(Math.max(0, next), maxThumbnailStart);
-    });
   };
 
   const handleGalleryPrevious = () => {
@@ -303,38 +277,17 @@ function ProductDetailPage() {
               <div className="gallery-stage">
                 {images.length > 1 && (
                   <div className="gallery-thumbnail-rail">
-                    <button
-                      type="button"
-                      className="gallery-nav-btn thumbnail-nav-btn"
-                      onClick={() => handleThumbnailStep(-1)}
-                      disabled={thumbnailStart === 0}
-                      aria-label="Previous thumbnails"
-                    >
-                      <ChevronUp size={18} />
-                    </button>
                     <div className="gallery-thumbnails vertical-thumbnails">
-                      {visibleThumbnails.map((img, idx) => {
-                        const actualIndex = thumbnailStart + idx;
-                        return (
-                          <button
-                            key={`${img}-${actualIndex}`}
-                            className={`thumbnail ${selectedImage === actualIndex ? 'active' : ''}`}
-                            onClick={() => handleSelectImage(actualIndex)}
-                          >
-                            <img src={img} alt={`${product.name} ${actualIndex + 1}`} />
-                          </button>
-                        );
-                      })}
+                      {images.map((img, index) => (
+                        <button
+                          key={`${img}-${index}`}
+                          className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
+                          onClick={() => handleSelectImage(index)}
+                        >
+                          <img src={img} alt={`${product.name} ${index + 1}`} />
+                        </button>
+                      ))}
                     </div>
-                    <button
-                      type="button"
-                      className="gallery-nav-btn thumbnail-nav-btn"
-                      onClick={() => handleThumbnailStep(1)}
-                      disabled={thumbnailStart >= maxThumbnailStart}
-                      aria-label="Next thumbnails"
-                    >
-                      <ChevronDown size={18} />
-                    </button>
                   </div>
                 )}
 
