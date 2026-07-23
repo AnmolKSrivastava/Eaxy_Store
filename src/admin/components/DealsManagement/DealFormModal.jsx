@@ -15,7 +15,8 @@ function DealFormModal({
     badge: '',
     priority: 1,
     isActive: true,
-    discountPercent: '',
+    dealPrice: '',
+    mrpPrice: '',
   });
 
   useEffect(() => {
@@ -25,7 +26,8 @@ function DealFormModal({
         badge: editingDeal.badge || '',
         priority: editingDeal.priority || 1,
         isActive: editingDeal.isActive !== undefined ? editingDeal.isActive : true,
-        discountPercent: editingDeal.discountPercent || '',
+        dealPrice: editingDeal.price || '',
+        mrpPrice: editingDeal.originalPrice || '',
       });
     } else {
       setFormData({
@@ -33,16 +35,40 @@ function DealFormModal({
         badge: '',
         priority: 1,
         isActive: true,
-        discountPercent: '',
+        dealPrice: '',
+        mrpPrice: '',
       });
     }
   }, [editingDeal, show]);
+
+  const parsedDealPrice = Number(formData.dealPrice);
+  const parsedMrpPrice = Number(formData.mrpPrice);
+  const discountPercent =
+    Number.isFinite(parsedDealPrice)
+    && Number.isFinite(parsedMrpPrice)
+    && parsedDealPrice > 0
+    && parsedMrpPrice > 0
+    && parsedDealPrice <= parsedMrpPrice
+      ? Math.round(((parsedMrpPrice - parsedDealPrice) / parsedMrpPrice) * 100)
+      : null;
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleProductChange = (e) => {
+    const { value } = e.target;
+    const selectedProduct = products.find((product) => product.id === value);
+
+    setFormData((prev) => ({
+      ...prev,
+      productId: value,
+      dealPrice: selectedProduct?.price ?? prev.dealPrice,
+      mrpPrice: selectedProduct?.originalPrice ?? selectedProduct?.price ?? prev.mrpPrice,
     }));
   };
 
@@ -68,7 +94,7 @@ function DealFormModal({
             <select
               name="productId"
               value={formData.productId}
-              onChange={handleInputChange}
+              onChange={handleProductChange}
               required
             >
               <option value="">Select product</option>
@@ -78,6 +104,33 @@ function DealFormModal({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="dm-form-row">
+            <div className="dm-form-group">
+              <label>Discounted Price (INR) *</label>
+              <input
+                type="number"
+                name="dealPrice"
+                value={formData.dealPrice}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+            <div className="dm-form-group">
+              <label>M.R.P (INR) *</label>
+              <input
+                type="number"
+                name="mrpPrice"
+                value={formData.mrpPrice}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
           </div>
 
           <div className="dm-form-row">
@@ -95,13 +148,10 @@ function DealFormModal({
             <div className="dm-form-group">
               <label>Discount %</label>
               <input
-                type="number"
+                type="text"
                 name="discountPercent"
-                value={formData.discountPercent}
-                onChange={handleInputChange}
-                min="0"
-                max="100"
-                placeholder="Optional"
+                value={discountPercent !== null ? `${discountPercent}%` : 'Auto calculated'}
+                readOnly
               />
             </div>
           </div>

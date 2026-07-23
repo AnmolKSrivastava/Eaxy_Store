@@ -1,9 +1,38 @@
-import { ChevronRight, Clock, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ChevronRight, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { imageUrls } from '../../assets/images';
+import { fetchActiveDeals } from '../../firebase/productsService';
 
 function HeroSection() {
   const navigate = useNavigate();
+  const [featuredDeal, setFeaturedDeal] = useState(null);
+
+  useEffect(() => {
+    const loadDealOfTheDay = async () => {
+      try {
+        const activeDeals = await fetchActiveDeals();
+        setFeaturedDeal(activeDeals[0] || null);
+      } catch (error) {
+        console.error('Failed to load deal of the day:', error);
+      }
+    };
+
+    loadDealOfTheDay();
+  }, []);
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(price || 0);
+  };
+
+  const mrp = featuredDeal?.originalPrice || featuredDeal?.price || 0;
+  const dealPrice = featuredDeal?.price || 0;
+  const dealDiscount = mrp > 0
+    ? Math.max(0, Math.round(((mrp - dealPrice) / mrp) * 100))
+    : 0;
 
   return (
     <section id="top" className="hero section">
@@ -45,14 +74,42 @@ function HeroSection() {
           </div>
         </div>
         <div className="hero-media reveal delay-1">
-          <img src={imageUrls.hero} alt="Premium laptop" />
-          <aside className="hero-chip">
-            <Clock size={20} />
-            <div>
-              <span>Next delivery in</span>
-              <strong>3h 42min</strong>
+          <article
+            className="hero-deal-card"
+            onClick={() => featuredDeal?.productId && navigate(`/products/${featuredDeal.productId}`)}
+            role={featuredDeal?.productId ? 'button' : undefined}
+            tabIndex={featuredDeal?.productId ? 0 : -1}
+            onKeyDown={(event) => {
+              if (!featuredDeal?.productId) return;
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                navigate(`/products/${featuredDeal.productId}`);
+              }
+            }}
+          >
+            <span className="hero-deal-badge">Deal of the Day</span>
+
+            {featuredDeal?.image ? (
+              <img src={featuredDeal.image} alt={featuredDeal.productName || 'Deal of the day'} />
+            ) : (
+              <div className="hero-deal-placeholder">Add a deal from Admin Dashboard</div>
+            )}
+
+            <div className="hero-deal-badge-stack">
+              <span className="hero-deal-info-badge hero-deal-name-badge">
+                {featuredDeal?.productName || 'No active deal yet'}
+              </span>
+              <span className="hero-deal-info-badge hero-deal-price-badge">
+                Discounted Price: {formatPrice(dealPrice)}
+              </span>
+              <span className="hero-deal-info-badge hero-deal-mrp-badge">
+                M.R.P: <span>{formatPrice(mrp)}</span>
+              </span>
+              <span className="hero-deal-info-badge hero-deal-discount-badge">
+                {dealDiscount}% Discount
+              </span>
             </div>
-          </aside>
+          </article>
         </div>
       </div>
     </section>

@@ -73,16 +73,38 @@ function DealsManagement() {
         return;
       }
 
+      const parsedDealPrice = Number(formData.dealPrice);
+      const parsedMrpPrice = Number(formData.mrpPrice);
+
+      if (!Number.isFinite(parsedDealPrice) || parsedDealPrice <= 0) {
+        setError('Discounted price must be greater than 0.');
+        return;
+      }
+
+      if (!Number.isFinite(parsedMrpPrice) || parsedMrpPrice <= 0) {
+        setError('M.R.P must be greater than 0.');
+        return;
+      }
+
+      if (parsedDealPrice > parsedMrpPrice) {
+        setError('Discounted price cannot be greater than M.R.P.');
+        return;
+      }
+
+      const derivedDiscountPercent = parsedMrpPrice > 0
+        ? Math.round(((parsedMrpPrice - parsedDealPrice) / parsedMrpPrice) * 100)
+        : 0;
+
       const dealData = {
         productId: formData.productId,
         productName: product.name,
-        price: product.price,
-        originalPrice: product.originalPrice || product.price,
+        price: parsedDealPrice,
+        originalPrice: parsedMrpPrice,
         image: product.images && product.images.length > 0 ? product.images[0] : product.image,
         badge: formData.badge,
         priority: Number(formData.priority),
         isActive: formData.isActive,
-        discountPercent: formData.discountPercent ? Number(formData.discountPercent) : null,
+        discountPercent: derivedDiscountPercent,
       };
 
       if (editing) {

@@ -530,26 +530,31 @@
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 0.8rem;
+  display: grid;
+  gap: 0.7rem;
 }
 
 .price-main {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
+  margin: 0;
+  line-height: 1;
 }
 
 .current-price {
   font-size: 2rem;
   font-weight: 700;
   color: var(--primary);
+  line-height: 1;
 }
 
 .original-price {
   font-size: 1.3rem;
   color: var(--muted);
   text-decoration: line-through;
+  line-height: 1;
 }
 
 .discount-badge {
@@ -559,6 +564,7 @@
   font-weight: 700;
   padding: 0.3rem 0.7rem;
   border-radius: 6px;
+  line-height: 1.1;
 }
 
 .price-note {
@@ -569,10 +575,10 @@
 
 .price-savings-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.85rem;
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .mrp-label {
@@ -588,12 +594,11 @@
 }
 
 .product-stock-line {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 0.9rem;
+  margin-top: 0.45rem;
 }
 
 .stock-pill {
@@ -618,6 +623,8 @@
 .emi-note {
   color: var(--muted);
   font-size: 0.9rem;
+  justify-self: end;
+  text-align: right;
 }
 
 /* Specs */
@@ -1182,7 +1189,14 @@
   }
 
   .product-stock-line {
-    align-items: flex-start;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 0.5rem;
+  }
+
+  .emi-note {
+    justify-self: start;
+    text-align: left;
   }
 
   .related-products-grid {

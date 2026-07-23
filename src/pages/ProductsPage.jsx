@@ -348,15 +348,25 @@ function ProductsPage() {
                             )}
                           </div>
                         )}
-                        <ul className="product-specs">
-                          {Array.isArray(product.specs) && product.specs.slice(0, 3).map((spec, i) => (
-                            <li key={i}>{spec}</li>
-                          ))}
-                        </ul>
+                        <p className="product-snippet">
+                          {product.description
+                            || (Array.isArray(product.specs) && product.specs.length > 0
+                              ? product.specs.slice(0, 2).join(' | ')
+                              : 'Reliable performance and quality from Eaxy Store.')}
+                        </p>
                         <div className="product-pricing">
-                          <strong className="price">{formatPrice(product.price)}</strong>
+                          <div className="deal-price-row">
+                            <strong className="price">{formatPrice(product.price)}</strong>
+                            {product.originalPrice && product.originalPrice > product.price && (
+                              <span className="price-discount">
+                                {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% off
+                              </span>
+                            )}
+                          </div>
                           {product.originalPrice && (
-                            <span className="original-price">{formatPrice(product.originalPrice)}</span>
+                            <p className="mrp-row">
+                              M.R.P: <span className="original-price">{formatPrice(product.originalPrice)}</span>
+                            </p>
                           )}
                         </div>
                         <button 
